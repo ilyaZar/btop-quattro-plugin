@@ -31,9 +31,9 @@ The plugin keeps the short list of controls that is useful before opening btop:
 |-----------------|-------------|------------------------------------------|
 | Tray icon       | Omarchy     | Meters, CPU, Pulse, or a custom image    |
 | Window mode     | Omarchy     | Floating or tiled                        |
-| Update interval | `btop.conf` | 500, 1000, 2000, or 5000 milliseconds   |
-| Process sorting | `btop.conf` | Lazy CPU, direct CPU, memory, or program |
-| Process tree    | `btop.conf` | On or off                                |
+| Update interval | Plugin      | 500, 1000, 2000, or 5000 milliseconds   |
+| Process sorting | Plugin      | Lazy CPU, direct CPU, memory, or program |
+| Process tree    | Plugin      | On or off                                |
 
 Cycle **Tray icon** through **Meters**, **CPU**, **Pulse**, and **Custom**. The
 custom path is stored separately, so switching between styles does not discard
@@ -69,19 +69,19 @@ The plugin appears on the right side of the bar by default.
 omarchy plugin remove ilyazar.btop
 ```
 
-Removing the plugin does not remove btop or its configuration.
+Removing the plugin removes its private btop settings. It does not remove btop
+or change btop's normal configuration.
 
 ## Config safety
 
-btop stores its configuration at `$XDG_CONFIG_HOME/btop/btop.conf`, falling
-back to `~/.config/btop/btop.conf`. The plugin treats that file as the source
-of truth and does not keep a second copy of btop settings.
+The plugin launches btop with a private `.btop.conf` inside its checkout. Its
+three btop controls change only that file; the normal user `btop.conf` is never
+read or written.
 
-Before each change, the plugin reloads the file, patches only the selected key,
-and writes it with Quickshell's atomic-write mode. Unrelated settings, comments,
-and direct edits are preserved. The settings page watches the file for outside
-edits. A running btop receives its supported config-reload signal only after a
-successful plugin change.
+The private file is created only when btop is opened or a btop setting is
+changed. Quickshell writes plugin changes atomically, and a running btop
+receives its supported config-reload signal only after a successful change.
+Native plugin removal deletes the private file with the checkout.
 
 ## Requirements
 
