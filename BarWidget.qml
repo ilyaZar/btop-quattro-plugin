@@ -345,7 +345,7 @@ Panel {
             ? "CPU " + Math.round(root.activity ? root.activity.cpuUsage : 0)
               + "% · Memory "
               + Math.round(root.activity ? root.activity.memoryUsage : 0) + "%"
-            : "Stored in btop.conf"
+            : "Private btop.conf"
           foreground: root.foreground
           fontFamily: root.fontFamily
           iconComponent: Component {
