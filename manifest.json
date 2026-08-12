@@ -22,7 +22,7 @@
     "allowMultiple": false,
     "defaultSection": "right",
     "defaults": {
-      "iconStyle": "Meters",
+      "iconStyle": "CPU",
       "customIconPath": "",
       "windowMode": "Floating"
     },
@@ -37,7 +37,7 @@
           "Pulse",
           "Custom"
         ],
-        "defaultValue": "Meters"
+        "defaultValue": "CPU"
       },
       {
         "key": "customIconPath",

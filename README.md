@@ -3,8 +3,8 @@
 ![btop Activity on the Omarchy desktop](preview.png)
 
 Live CPU, RAM, and temperature activity in the Omarchy bar, with btop always
-one click away. The default icon is a compact pair of animated meters that
-follows the bar's normal foreground color.
+one click away. The default CPU icon follows the bar's normal foreground
+color.
 
 ## Use
 
@@ -37,7 +37,7 @@ The plugin keeps the short list of controls that is useful before opening btop:
 
 Cycle **Tray icon** through **Meters**, **CPU**, **Pulse**, and **Custom**. The
 custom path is stored separately, so switching between styles does not discard
-it.
+it. **CPU** is the default for new installations.
 
 For **Custom**, enter an absolute path, a `~/path`, or a `file://` URL, then
 press Enter or **Save**. SVG and PNG work well. The plugin renders the file
