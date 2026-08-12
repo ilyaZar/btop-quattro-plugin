@@ -77,6 +77,10 @@ Panel {
       + padLeft("Right click: menu", 17)
   }
 
+  function shellQuote(value) {
+    return "'" + String(value).replace(/'/g, "'\\''") + "'"
+  }
+
   function resolveIconPath(path) {
     var value = String(path || "").trim()
     if (value.indexOf("~/") === 0)
@@ -92,17 +96,21 @@ Panel {
   }
 
   function launchBtop() {
+    if (!activity) return
     close()
     Quickshell.execDetached([
-      "omarchy-launch-or-focus-tui", "--app-id=" + btopAppId, "btop"
+      "omarchy-launch-or-focus-tui", "--app-id=" + btopAppId,
+      "btop", "--config", activity.configPath
     ])
   }
 
   function launchBtopHelp() {
+    if (!activity) return
     close()
     Quickshell.execDetached([
       "bash", "-lc",
-      "omarchy-launch-or-focus-tui --app-id=" + btopAppId + " btop "
+      "omarchy-launch-or-focus-tui --app-id=" + btopAppId
+        + " btop --config " + shellQuote(activity.configPath) + " "
         + ">/dev/null 2>&1 & "
         + "for _ in {1..30}; do "
         + "if hyprctl clients -j | jq -e "
