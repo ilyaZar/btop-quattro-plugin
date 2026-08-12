@@ -2,9 +2,9 @@
 
 ![btop Activity on the Omarchy desktop](preview.png)
 
-Live CPU and memory activity in the Omarchy bar, with btop always one click
-away. The default icon is a compact pair of animated meters that follows the
-bar's normal foreground color.
+Live CPU, RAM, and temperature activity in the Omarchy bar, with btop always
+one click away. The default icon is a compact pair of animated meters that
+follows the bar's normal foreground color.
 
 ## Use
 
@@ -19,6 +19,9 @@ bar's normal foreground color.
 The left meter shows CPU use and the right meter shows memory use. The menu is
 also keyboard-friendly: use the arrow keys and Enter, or press `b`, `s`, or `?`
 for btop, settings, or help.
+
+Hovering shows RAM use, CPU use, and CPU temperature. The btop update interval
+controls how often all three are sampled.
 
 ## Settings
 
@@ -47,8 +50,7 @@ Depending on the installed icon themes, useful paths include:
 - `/usr/share/icons/Yaru/scalable/apps/system-monitor-app-symbolic.svg`
 
 The icon mode and custom path are stored in Omarchy's `shell.json` and survive
-shell restarts. The tray sampling interval is also available in Omarchy's
-plugin configuration and defaults to two seconds.
+shell restarts.
 
 Under **Appearance**, choose whether btop opens tiled or floating. The setting
 applies to both left-click and Help, and Floating is the default.

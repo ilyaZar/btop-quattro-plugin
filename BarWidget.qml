@@ -30,11 +30,15 @@ Panel {
     ? "org.omarchy.btop_tiled" : "org.omarchy.btop"
   readonly property bool customIconInvalid: iconStyle === "Custom"
     && (customIconUrl === "" || customIconLoadFailed)
+  readonly property string temperatureSuffix:
+    activity && activity.cpuTemperature >= 0
+      ? " • " + Math.round(activity.cpuTemperature) + "°C" : ""
   readonly property string tooltip: alignedTooltip(
     customIconInvalid ? "Custom icon" : (activity && activity.available
-      ? "CPU " + Math.round(activity.cpuUsage) + "%" : "CPU --"),
+      ? "RAM: " + Math.round(activity.memoryUsage) + "%" : "RAM: --"),
     customIconInvalid ? "Unavailable" : (activity && activity.available
-      ? "RAM " + Math.round(activity.memoryUsage) + "%" : "RAM --")
+      ? "CPU: " + Math.round(activity.cpuUsage) + "%" + temperatureSuffix
+      : "CPU: --")
   )
   readonly property var updateChoices: [500, 1000, 2000, 5000]
   readonly property var sortingChoices: [
@@ -67,15 +71,10 @@ Panel {
   }
 
   function alignedTooltip(firstMetric, secondMetric) {
-    return padRight(firstMetric, 11) + "   " + padLeft("Left click: btop", 17)
-      + "\n" + padRight(secondMetric, 11) + "   "
+    return padRight(firstMetric, 17) + "    "
+      + padLeft("Left click: btop", 17)
+      + "\n" + padRight(secondMetric, 17) + "    "
       + padLeft("Right click: menu", 17)
-  }
-
-  function configureService() {
-    if (activity) activity.setRefreshInterval(
-      intSetting("refreshIntervalSec", 2, 1, 10)
-    )
   }
 
   function resolveIconPath(path) {
@@ -230,15 +229,12 @@ Panel {
     return value
   }
 
-  onActivityChanged: configureService()
   onCustomIconPathChanged: if (!customIconField.activeFocus)
     customIconDraft = customIconPath
-  onSettingsChanged: configureService()
   onOpenedChanged: if (opened) {
     showMain()
     Qt.callLater(function() { keyCatcher.forceActiveFocus() })
   }
-  Component.onCompleted: configureService()
 
   implicitWidth: button.implicitWidth
   implicitHeight: button.implicitHeight

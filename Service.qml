@@ -6,9 +6,10 @@ QtObject {
   id: root
 
   property real cpuUsage: 0
+  property real cpuTemperature: -1
   property real memoryUsage: 0
   property bool available: false
-  property int refreshIntervalSec: 2
+  property string temperaturePath: ""
   property real previousIdle: -1
   property real previousTotal: -1
 
@@ -43,13 +44,9 @@ QtObject {
     return Math.max(minimum, Math.min(maximum, value))
   }
 
-  function setRefreshInterval(seconds) {
-    var value = parseInt(String(seconds), 10)
-    refreshIntervalSec = isFinite(value) ? clamp(value, 1, 10) : 2
-  }
-
   function refresh() {
     if (!statsProcess.running) statsProcess.running = true
+    if (temperaturePath !== "") temperatureFile.reload()
   }
 
   function loadConfig() {
@@ -76,7 +73,8 @@ QtObject {
     var sorting = String(configValue(raw, "proc_sorting") || "cpu lazy")
     var tree = String(configValue(raw, "proc_tree") || "false").toLowerCase()
 
-    updateMs = isFinite(interval) ? interval : 2000
+    updateMs = isFinite(interval) && interval >= 100 && interval <= 86400000
+      ? interval : 2000
     procSorting = sortingValues.indexOf(sorting) >= 0 ? sorting : "cpu lazy"
     procTree = tree === "true"
     configReady = true
@@ -244,6 +242,12 @@ QtObject {
     }
   }
 
+  function applyTemperature(raw) {
+    var millidegrees = Number(String(raw || "").trim())
+    cpuTemperature = isFinite(millidegrees) && millidegrees > 0
+      ? millidegrees / 1000 : -1
+  }
+
   property FileView configFile: FileView {
     id: configFile
     path: root.configPath
@@ -265,6 +269,14 @@ QtObject {
     onFileChanged: configReloadTimer.restart()
   }
 
+  property FileView temperatureFile: FileView {
+    id: temperatureFile
+    path: root.temperaturePath
+    printErrors: false
+    onLoaded: root.applyTemperature(text())
+    onLoadFailed: root.cpuTemperature = -1
+  }
+
   property Process statsProcess: Process {
     id: statsProcess
     command: ["omarchy-system-stats", "--bar-widget"]
@@ -274,6 +286,24 @@ QtObject {
     }
     onExited: function(exitCode) {
       if (exitCode !== 0) root.available = false
+    }
+  }
+
+  property Process temperaturePathProcess: Process {
+    running: true
+    command: [
+      "sh", "-c",
+      "for d in /sys/class/hwmon/hwmon*; do "
+        + "[ -r \"$d/name\" ] || continue; "
+        + "read -r name < \"$d/name\"; "
+        + "case \"$name\" in coretemp|k10temp|zenpower|cpu_thermal) "
+        + "for f in \"$d\"/temp*_input; do "
+        + "[ -r \"$f\" ] || continue; printf '%s\\n' \"$f\"; exit; "
+        + "done;; esac; done"
+    ]
+    stdout: StdioCollector {
+      waitForEnd: true
+      onStreamFinished: root.temperaturePath = String(text).trim()
     }
   }
 
@@ -329,7 +359,7 @@ QtObject {
   }
 
   property Timer refreshTimer: Timer {
-    interval: root.refreshIntervalSec * 1000
+    interval: root.updateMs
     repeat: true
     running: true
     triggeredOnStart: true
