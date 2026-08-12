@@ -28,13 +28,9 @@ QtObject {
 
   readonly property bool configBusy: _pendingKey !== ""
     || _savingConfig
-    || configDirectoryProcess.running || defaultConfigProcess.running
-  readonly property string configRoot: {
-    var xdg = Quickshell.env("XDG_CONFIG_HOME")
-    return xdg || Quickshell.env("HOME") + "/.config"
-  }
-  readonly property string configDirectory: configRoot + "/btop"
-  readonly property string configPath: configDirectory + "/btop.conf"
+    || defaultConfigProcess.running
+  readonly property string configPath: Quickshell.env("HOME")
+    + "/.config/omarchy/plugins/ilyazar.btop/.btop.conf"
   readonly property var sortingValues: [
     "pid", "program", "arguments", "threads", "user", "memory",
     "cpu lazy", "cpu direct"
@@ -173,9 +169,10 @@ QtObject {
   }
 
   function createConfig() {
-    if (configDirectoryProcess.running || defaultConfigProcess.running) return
-    configDirectoryProcess.command = ["mkdir", "-p", configDirectory]
-    configDirectoryProcess.running = true
+    if (defaultConfigProcess.running) return
+    _defaultConfigOutput = ""
+    _defaultConfigError = ""
+    defaultConfigProcess.running = true
   }
 
   function finishDefaultConfig() {
@@ -257,7 +254,10 @@ QtObject {
     printErrors: false
     onLoaded: root.handleConfigLoaded(text())
     onLoadFailed: function(error) {
-      if (error === FileViewError.FileNotFound) root.createConfig()
+      if (error === FileViewError.FileNotFound) {
+        if (root._pendingKey !== "") root.createConfig()
+        else root.applyConfig("")
+      }
       else root.failConfig("Could not read btop settings: "
         + FileViewError.toString(error))
     }
@@ -304,21 +304,6 @@ QtObject {
     stdout: StdioCollector {
       waitForEnd: true
       onStreamFinished: root.temperaturePath = String(text).trim()
-    }
-  }
-
-  property Process configDirectoryProcess: Process {
-    id: configDirectoryProcess
-    running: false
-    command: []
-    onExited: function(exitCode) {
-      if (exitCode !== 0) {
-        root.failConfig("Could not create the btop config directory")
-        return
-      }
-      root._defaultConfigOutput = ""
-      root._defaultConfigError = ""
-      defaultConfigProcess.running = true
     }
   }
 
