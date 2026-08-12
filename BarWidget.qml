@@ -21,7 +21,7 @@ Panel {
   readonly property color foreground: bar ? bar.foreground : Color.foreground
   readonly property color dim: Qt.darker(foreground, 1.5)
   readonly property string fontFamily: bar ? bar.fontFamily : Style.font.family
-  readonly property string iconStyle: String(setting("iconStyle", "Meters"))
+  readonly property string iconStyle: String(setting("iconStyle", "CPU"))
   readonly property string iconGlyph: iconStyle === "CPU" ? "󰍛" : ""
   readonly property string customIconPath: String(setting("customIconPath", ""))
   readonly property string customIconUrl: resolveIconPath(customIconPath)
