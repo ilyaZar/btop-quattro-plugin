@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "id": "ilyazar.btop",
+  "name": "btop Activity",
+  "version": "0.1.0",
+  "author": "ilyaZar",
+  "license": "MIT",
+  "description": "Live CPU and memory meters for the Omarchy bar, with one-click btop, essential settings, built-in help, and custom icons.",
+  "kinds": [
+    "service",
+    "bar-widget"
+  ],
+  "keepLoaded": true,
+  "entryPoints": {
+    "service": "Service.qml",
+    "barWidget": "BarWidget.qml"
+  },
+  "barWidget": {
+    "displayName": "btop Activity",
+    "description": "CPU and memory meters with one-click btop, essential settings, built-in help, and custom icons.",
+    "category": "System",
+    "allowMultiple": false,
+    "defaultSection": "right",
+    "defaults": {
+      "refreshIntervalSec": 2,
+      "iconStyle": "Meters",
+      "customIconPath": "",
+      "windowMode": "Floating"
+    },
+    "schema": [
+      {
+        "key": "refreshIntervalSec",
+        "type": "integer",
+        "label": "Tray refresh interval (seconds)",
+        "min": 1,
+        "max": 10,
+        "step": 1,
+        "defaultValue": 2
+      },
+      {
+        "key": "iconStyle",
+        "type": "enum",
+        "label": "Tray icon",
+        "options": [
+          "Meters",
+          "CPU",
+          "Pulse",
+          "Custom"
+        ],
+        "defaultValue": "Meters"
+      },
+      {
+        "key": "customIconPath",
+        "type": "string",
+        "label": "Custom icon path",
+        "defaultValue": ""
+      },
+      {
+        "key": "windowMode",
+        "type": "enum",
+        "label": "btop window mode",
+        "options": [
+          "Floating",
+          "Tiled"
+        ],
+        "defaultValue": "Floating"
+      }
+    ]
+  }
+}

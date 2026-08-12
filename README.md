@@ -1,0 +1,104 @@
+# btop Activity for Omarchy
+
+![btop Activity on the Omarchy desktop](preview.png)
+
+Live CPU and memory activity in the Omarchy bar, with btop always one click
+away. The default icon is a compact pair of animated meters that follows the
+bar's normal foreground color.
+
+## Use
+
+- **Left-click** the bar icon to start or focus btop in the selected window
+  mode.
+- **Right-click** the bar icon to open the plugin menu.
+- Choose **Settings** to change the tray icon or essential btop options.
+- Choose **Help** below the separator to open or focus btop in the selected
+  window mode, directly on its built-in help screen. The same btop window is
+  reused when possible.
+
+The left meter shows CPU use and the right meter shows memory use. The menu is
+also keyboard-friendly: use the arrow keys and Enter, or press `b`, `s`, or `?`
+for btop, settings, or help.
+
+## Settings
+
+The plugin keeps the short list of controls that is useful before opening btop:
+
+| Setting         | Stored in   | Choices                                  |
+|-----------------|-------------|------------------------------------------|
+| Tray icon       | Omarchy     | Meters, CPU, Pulse, or a custom image    |
+| Window mode     | Omarchy     | Floating or tiled                        |
+| Update interval | `btop.conf` | 500, 1000, 2000, or 5000 milliseconds   |
+| Process sorting | `btop.conf` | Lazy CPU, direct CPU, memory, or program |
+| Process tree    | `btop.conf` | On or off                                |
+
+Cycle **Tray icon** through **Meters**, **CPU**, **Pulse**, and **Custom**. The
+custom path is stored separately, so switching between styles does not discard
+it.
+
+For **Custom**, enter an absolute path, a `~/path`, or a `file://` URL, then
+press Enter or **Save**. SVG and PNG work well. The plugin renders the file
+as-is and does not recolor it. An invalid path shows `!`.
+
+Depending on the installed icon themes, useful paths include:
+
+- `/usr/share/icons/hicolor/scalable/apps/btop.svg`
+- `/usr/share/icons/HighContrast/scalable/apps/utilities-system-monitor.svg`
+- `/usr/share/icons/Yaru/scalable/apps/system-monitor-app-symbolic.svg`
+
+The icon mode and custom path are stored in Omarchy's `shell.json` and survive
+shell restarts. The tray sampling interval is also available in Omarchy's
+plugin configuration and defaults to two seconds.
+
+Under **Appearance**, choose whether btop opens tiled or floating. The setting
+applies to both left-click and Help, and Floating is the default.
+
+## Install
+
+```bash
+omarchy plugin add https://github.com/ilyaZar/btop-quattro-plugin --enable
+```
+
+The plugin appears on the right side of the bar by default.
+
+## Remove
+
+```bash
+omarchy plugin remove ilyazar.btop
+```
+
+Removing the plugin does not remove btop or its configuration.
+
+## Config safety
+
+btop stores its configuration at `$XDG_CONFIG_HOME/btop/btop.conf`, falling
+back to `~/.config/btop/btop.conf`. The plugin treats that file as the source
+of truth and does not keep a second copy of btop settings.
+
+Before each change, the plugin reloads the file, patches only the selected key,
+and writes it with Quickshell's atomic-write mode. Unrelated settings, comments,
+and direct edits are preserved. The settings page watches the file for outside
+edits. A running btop receives its supported config-reload signal only after a
+successful plugin change.
+
+## Requirements
+
+- Omarchy Quattro
+- btop, included with Omarchy
+
+## Development
+
+Link this repository into the local plugin folder and enable it:
+
+```bash
+ln -s "$PWD" ~/.config/omarchy/plugins/ilyazar.btop
+omarchy-shell shell rescanPlugins
+omarchy plugin enable ilyazar.btop --section right
+```
+
+`Service.qml` owns system sampling and the native Quickshell config bridge.
+`BarWidget.qml` owns the bar icon, menu, and navigation.
+
+## License
+
+MIT
