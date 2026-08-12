@@ -5,7 +5,7 @@
   "version": "0.1.0",
   "author": "ilyaZar",
   "license": "MIT",
-  "description": "Minimal, low-overhead btop access from the Omarchy bar, with live CPU and memory meters, basic settings, built-in help, and built-in or custom icons.",
+  "description": "Minimal, low-overhead btop access from the Omarchy bar, with live CPU, RAM, and temperature meters, basic settings, built-in help, and built-in or custom icons.",
   "kinds": [
     "service",
     "bar-widget"
@@ -17,26 +17,16 @@
   },
   "barWidget": {
     "displayName": "btop Activity",
-    "description": "CPU and memory meters with one-click btop, basic settings, built-in help, and built-in or custom icons.",
+    "description": "CPU, RAM, and temperature meters with one-click btop, basic settings, built-in help, and built-in or custom icons.",
     "category": "System",
     "allowMultiple": false,
     "defaultSection": "right",
     "defaults": {
-      "refreshIntervalSec": 2,
       "iconStyle": "Meters",
       "customIconPath": "",
       "windowMode": "Floating"
     },
     "schema": [
-      {
-        "key": "refreshIntervalSec",
-        "type": "integer",
-        "label": "Tray refresh interval (seconds)",
-        "min": 1,
-        "max": 10,
-        "step": 1,
-        "defaultValue": 2
-      },
       {
         "key": "iconStyle",
         "type": "enum",
