@@ -11,7 +11,7 @@ bar's normal foreground color.
 - **Left-click** the bar icon to start or focus btop in the selected window
   mode.
 - **Right-click** the bar icon to open the plugin menu.
-- Choose **Settings** to change the tray icon or essential btop options.
+- Choose **Settings** to change the tray icon or basic btop options.
 - Choose **Help** below the separator to open or focus btop in the selected
   window mode, directly on its built-in help screen. The same btop window is
   reused when possible.

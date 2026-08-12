@@ -5,7 +5,7 @@
   "version": "0.1.0",
   "author": "ilyaZar",
   "license": "MIT",
-  "description": "Live CPU and memory meters for the Omarchy bar, with one-click btop, essential settings, built-in help, and custom icons.",
+  "description": "Minimal, low-overhead btop access from the Omarchy bar, with live CPU and memory meters, basic settings, built-in help, and built-in or custom icons.",
   "kinds": [
     "service",
     "bar-widget"
@@ -17,7 +17,7 @@
   },
   "barWidget": {
     "displayName": "btop Activity",
-    "description": "CPU and memory meters with one-click btop, essential settings, built-in help, and custom icons.",
+    "description": "CPU and memory meters with one-click btop, basic settings, built-in help, and built-in or custom icons.",
     "category": "System",
     "allowMultiple": false,
     "defaultSection": "right",
