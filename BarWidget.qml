@@ -34,7 +34,7 @@ Panel {
     customIconInvalid ? "Custom icon" : (activity && activity.available
       ? "CPU " + Math.round(activity.cpuUsage) + "%" : "CPU --"),
     customIconInvalid ? "Unavailable" : (activity && activity.available
-      ? "Memory " + Math.round(activity.memoryUsage) + "%" : "Memory --")
+      ? "RAM " + Math.round(activity.memoryUsage) + "%" : "RAM --")
   )
   readonly property var updateChoices: [500, 1000, 2000, 5000]
   readonly property var sortingChoices: [
