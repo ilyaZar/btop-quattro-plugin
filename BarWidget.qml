@@ -465,7 +465,7 @@ Panel {
           }
 
           MenuRow {
-            label: "Window mode"
+            label: "Hyprland window mode"
             value: root.windowMode
             hasCursor: root.settingsIndex === root.windowModeIndex
             onHovered: function(on) {
