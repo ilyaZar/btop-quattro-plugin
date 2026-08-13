@@ -171,6 +171,25 @@ Panel {
     bar.shell.updateEntryInline(moduleName, entry)
   }
 
+  function applyWindowMode(mode) {
+    var action = mode === "Tiled" ? "tile" : "float"
+    var appIds = ["org.omarchy.btop", "org.omarchy.btop_tiled"]
+    for (var i = 0; i < appIds.length; i++) {
+      var window = "class:" + appIds[i]
+      var command = "hl.dispatch(hl.dsp.window.float({ action = \""
+        + action + "\", window = \"" + window + "\" }))"
+      if (mode === "Floating") {
+        command += "; hl.dispatch(hl.dsp.window.resize({ x = 875, y = 600, "
+          + "relative = false, window = \"" + window + "\" }))"
+          + "; hl.dispatch(hl.dsp.window.center({ window = \""
+          + window + "\" }))"
+      }
+      Quickshell.execDetached([
+        "hyprctl", "eval", command
+      ])
+    }
+  }
+
   function saveCustomIconPath() {
     var value = customIconDraft.trim()
     if (resolveIconPath(value) === "") {
@@ -199,10 +218,9 @@ Panel {
       return
     }
     if (index === windowModeIndex) {
-      persistPluginSetting(
-        "windowMode",
-        nextChoice(["Floating", "Tiled"], windowMode, direction)
-      )
+      var mode = nextChoice(["Floating", "Tiled"], windowMode, direction)
+      persistPluginSetting("windowMode", mode)
+      applyWindowMode(mode)
       return
     }
     if (!activity || activity.configBusy) return
