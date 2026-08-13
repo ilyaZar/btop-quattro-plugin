@@ -97,10 +97,10 @@ QtObject {
     }
   }
 
-  function handleConfigLoaded(raw) {
+  function handleConfigLoaded(raw, createFile) {
     var text = String(raw || "")
     var current = text
-    configExists = true
+    if (!createFile) configExists = true
     if (_pendingConfig === null) {
       configReady = true
       configError = ""
@@ -112,7 +112,7 @@ QtObject {
     text = patchConfig(text, "update_ms", String(values.updateMs))
     text = patchConfig(text, "proc_sorting", JSON.stringify(values.procSorting))
     text = patchConfig(text, "proc_tree", String(values.procTree))
-    if (text === current) {
+    if (!createFile && text === current) {
       configReady = true
       configError = ""
       return
@@ -166,7 +166,7 @@ QtObject {
       return
     }
     if (_pendingConfig !== null) {
-      handleConfigLoaded(text)
+      handleConfigLoaded(text, true)
       return
     }
     saveConfig(text, false)
@@ -236,7 +236,7 @@ QtObject {
     atomicWrites: true
     blockWrites: true
     printErrors: false
-    onLoaded: root.handleConfigLoaded(text())
+    onLoaded: root.handleConfigLoaded(text(), false)
     onLoadFailed: function(error) {
       if (error === FileViewError.FileNotFound) {
         root.configExists = false
