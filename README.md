@@ -53,7 +53,8 @@ The icon mode and custom path are stored in Omarchy's `shell.json` and survive
 shell restarts.
 
 Under **Appearance**, choose whether btop opens tiled or floating. The setting
-applies to both left-click and Help, and Floating is the default.
+applies to both left-click and Help. Floating is the default and restores
+Omarchy's centered 875 x 600 window size when selected.
 
 ## Install
 
