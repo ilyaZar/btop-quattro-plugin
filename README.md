@@ -31,9 +31,9 @@ The plugin keeps the short list of controls that is useful before opening btop:
 |-----------------|-------------|------------------------------------------|
 | Tray icon       | Omarchy     | Meters, CPU, Pulse, or a custom image    |
 | Window mode     | Omarchy     | Floating or tiled                        |
-| Update interval | Plugin      | 250, 500, 1000, 2000, or 5000 ms        |
-| Process sorting | Plugin      | Lazy CPU, direct CPU, memory, or program |
-| Process tree    | Plugin      | On or off                                |
+| Update interval | Omarchy     | 250, 500, 1000, 2000, or 5000 ms        |
+| Process sorting | Omarchy     | Lazy CPU, direct CPU, memory, or program |
+| Process tree    | Omarchy     | On or off                                |
 
 Cycle **Tray icon** through **Meters**, **CPU**, **Pulse**, and **Custom**. The
 custom path is stored separately, so switching between styles does not discard
@@ -49,8 +49,7 @@ Depending on the installed icon themes, useful paths include:
 - `/usr/share/icons/HighContrast/scalable/apps/utilities-system-monitor.svg`
 - `/usr/share/icons/Yaru/scalable/apps/system-monitor-app-symbolic.svg`
 
-The icon mode and custom path are stored in Omarchy's `shell.json` and survive
-shell restarts.
+Plugin choices are stored in Omarchy's `shell.json` and survive shell restarts.
 
 Under **Appearance**, choose whether btop opens tiled or floating. The setting
 applies to both left-click and Help. Floating is the default and restores
@@ -75,15 +74,13 @@ or change btop's normal configuration.
 
 ## Config safety
 
-The plugin launches btop with a private `.btop.conf` inside its checkout. Its
-three btop controls change only that file; the normal user `btop.conf` is never
-read or written.
+The plugin stores its choices in Omarchy's `shell.json` and generates a private
+btop config under `$XDG_RUNTIME_DIR`. The normal user `btop.conf` is never read
+or written.
 
-The private file is created from Omarchy's packaged btop config only when btop
-is opened or a btop setting is changed. Quickshell writes plugin changes
-atomically, and a running btop receives its supported config-reload signal only
-after a successful change. Native plugin removal deletes the private file with
-the checkout.
+The runtime file is created from Omarchy's packaged btop config and disappears
+with the user session. Quickshell writes it atomically, and a running btop
+receives its supported config-reload signal only after a successful change.
 
 ## Requirements
 

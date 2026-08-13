@@ -14,13 +14,10 @@ QtObject {
   property real previousTotal: -1
 
   property int updateMs: 2000
-  property string procSorting: "cpu lazy"
-  property bool procTree: false
   property bool configExists: false
   property bool configReady: false
   property string configError: ""
-  property string _pendingKey: ""
-  property string _pendingValue: ""
+  property var _pendingConfig: null
   property bool _savingConfig: false
   property string _savingText: ""
   property bool _reloadAfterSave: false
@@ -29,12 +26,12 @@ QtObject {
   property bool _creatingConfig: false
   property bool _usingDefaultConfigFallback: false
 
-  readonly property bool configBusy: _pendingKey !== ""
+  readonly property bool configBusy: _pendingConfig !== null
     || _savingConfig
     || _creatingConfig
     || defaultConfigProcess.running
-  readonly property string configPath: Quickshell.env("HOME")
-    + "/.config/omarchy/plugins/ilyazar.btop/.btop.conf"
+  readonly property string configPath: Quickshell.env("XDG_RUNTIME_DIR")
+    + "/ilyazar-btop.conf"
   readonly property string omarchyConfigPath:
     "/usr/share/omarchy/config/btop/btop.conf"
   readonly property var sortingValues: [
@@ -51,58 +48,16 @@ QtObject {
     if (temperaturePath !== "") temperatureFile.reload()
   }
 
-  function loadConfig() {
-    configFile.reload()
-  }
-
-  function configValue(raw, key) {
-    var pattern = new RegExp(
-      "^\\s*" + key
-        + "\\s*=\\s*(\"(?:\\\\.|[^\"])*\"|[^\\s#]+)",
-      "m"
-    )
-    var match = pattern.exec(String(raw || ""))
-    if (!match) return undefined
-    var value = match[1]
-    if (value.length >= 2 && value[0] === "\"") {
-      try { return JSON.parse(value) } catch (error) { return undefined }
-    }
-    return value
-  }
-
-  function applyConfig(raw) {
-    var interval = parseInt(configValue(raw, "update_ms"), 10)
-    var sorting = String(configValue(raw, "proc_sorting") || "cpu lazy")
-    var tree = String(configValue(raw, "proc_tree") || "false").toLowerCase()
-
-    updateMs = isFinite(interval) && interval >= 100 && interval <= 86400000
-      ? interval : 2000
-    procSorting = sortingValues.indexOf(sorting) >= 0 ? sorting : "cpu lazy"
-    procTree = tree === "true"
-    configReady = true
-    configError = ""
-  }
-
-  function serializeConfigValue(key, value) {
-    if (key === "update_ms") {
-      var interval = parseInt(String(value), 10)
-      if (!isFinite(interval) || interval < 100 || interval > 86400000)
-        throw new Error("Invalid btop update interval")
-      return String(interval)
-    }
-    if (key === "proc_sorting") {
-      var sorting = String(value)
-      if (sortingValues.indexOf(sorting) < 0)
-        throw new Error("Invalid btop process sorting")
-      return JSON.stringify(sorting)
-    }
-    if (key === "proc_tree") {
-      var tree = String(value).toLowerCase()
-      if (tree !== "true" && tree !== "false")
-        throw new Error("Invalid btop process tree value")
-      return tree
-    }
-    throw new Error("Unsupported btop setting")
+  function validatedConfig(interval, sorting, tree) {
+    var update = parseInt(String(interval), 10)
+    var order = String(sorting)
+    if (!isFinite(update) || update < 100 || update > 86400000)
+      throw new Error("Invalid btop update interval")
+    if (sortingValues.indexOf(order) < 0)
+      throw new Error("Invalid btop process sorting")
+    if (tree !== true && tree !== false)
+      throw new Error("Invalid btop process tree value")
+    return { updateMs: update, procSorting: order, procTree: tree }
   }
 
   function patchConfig(raw, key, value) {
@@ -127,30 +82,42 @@ QtObject {
     return lines.join("\n") + "\n"
   }
 
-  function setConfig(key, value) {
-    if (configBusy) return
+  function setConfig(interval, sorting, tree) {
+    if (configBusy) return false
     try {
-      _pendingValue = serializeConfigValue(key, value)
-      _pendingKey = key
+      var next = validatedConfig(interval, sorting, tree)
+      updateMs = next.updateMs
+      _pendingConfig = next
       configError = ""
       configFile.reload()
+      return true
     } catch (error) {
       configError = String(error)
+      return false
     }
   }
 
   function handleConfigLoaded(raw) {
     var text = String(raw || "")
+    var current = text
     configExists = true
-    if (_pendingKey === "") {
-      applyConfig(text)
+    if (_pendingConfig === null) {
+      configReady = true
+      configError = ""
       return
     }
 
-    var next = patchConfig(text, _pendingKey, _pendingValue)
-    _pendingKey = ""
-    _pendingValue = ""
-    saveConfig(next, true)
+    var values = _pendingConfig
+    _pendingConfig = null
+    text = patchConfig(text, "update_ms", String(values.updateMs))
+    text = patchConfig(text, "proc_sorting", JSON.stringify(values.procSorting))
+    text = patchConfig(text, "proc_tree", String(values.procTree))
+    if (text === current) {
+      configReady = true
+      configError = ""
+      return
+    }
+    saveConfig(text, true)
   }
 
   function saveConfig(text, reloadAfterSave) {
@@ -172,7 +139,8 @@ QtObject {
     _savingText = ""
     _reloadAfterSave = false
     configExists = true
-    applyConfig(text)
+    configReady = true
+    configError = ""
     if (shouldReload) reloadBtop()
   }
 
@@ -197,7 +165,7 @@ QtObject {
       failConfig(_defaultConfigError || "btop returned an empty default config")
       return
     }
-    if (_pendingKey !== "") {
+    if (_pendingConfig !== null) {
       handleConfigLoaded(text)
       return
     }
@@ -205,8 +173,7 @@ QtObject {
   }
 
   function failConfig(message) {
-    _pendingKey = ""
-    _pendingValue = ""
+    _pendingConfig = null
     _savingConfig = false
     _savingText = ""
     _reloadAfterSave = false
@@ -266,7 +233,6 @@ QtObject {
   property FileView configFile: FileView {
     id: configFile
     path: root.configPath
-    watchChanges: true
     atomicWrites: true
     blockWrites: true
     printErrors: false
@@ -274,8 +240,11 @@ QtObject {
     onLoadFailed: function(error) {
       if (error === FileViewError.FileNotFound) {
         root.configExists = false
-        if (root._pendingKey !== "") root.createConfig()
-        else root.applyConfig("")
+        if (root._pendingConfig !== null) root.createConfig()
+        else {
+          root.configReady = true
+          root.configError = ""
+        }
       }
       else root.failConfig("Could not read btop settings: "
         + FileViewError.toString(error))
@@ -285,7 +254,6 @@ QtObject {
       root.failConfig("Could not save btop settings: "
         + FileViewError.toString(error))
     }
-    onFileChanged: configReloadTimer.restart()
   }
 
   property FileView temperatureFile: FileView {
@@ -374,13 +342,6 @@ QtObject {
     id: reloadProcess
     running: false
     command: []
-  }
-
-  property Timer configReloadTimer: Timer {
-    id: configReloadTimer
-    interval: 120
-    repeat: false
-    onTriggered: root.loadConfig()
   }
 
   property Timer refreshTimer: Timer {

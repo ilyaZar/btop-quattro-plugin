@@ -16,6 +16,7 @@ Panel {
   property string customIconError: ""
   property bool customIconLoadFailed: false
   property string pendingLaunch: ""
+  property bool configSynced: false
 
   readonly property var activity: bar && bar.shell
     ? bar.shell.serviceFor(moduleName) : null
@@ -27,6 +28,10 @@ Panel {
   readonly property string customIconPath: String(setting("customIconPath", ""))
   readonly property string customIconUrl: resolveIconPath(customIconPath)
   readonly property string windowMode: String(setting("windowMode", "Floating"))
+  readonly property int updateMs: intSetting("updateMs", 2000, 100, 86400000)
+  readonly property string procSorting:
+    String(setting("procSorting", "cpu lazy"))
+  readonly property bool procTree: setting("procTree", false) === true
   readonly property string btopAppId: windowMode === "Tiled"
     ? "org.omarchy.btop_tiled" : "org.omarchy.btop"
   readonly property bool customIconInvalid: iconStyle === "Custom"
@@ -100,7 +105,8 @@ Panel {
     if (!activity) return
     if (!activity.configExists) {
       pendingLaunch = action
-      if (!activity.configBusy) activity.createConfig()
+      configSynced = false
+      syncBtopConfig()
       return
     }
     pendingLaunch = ""
@@ -153,7 +159,6 @@ Panel {
     settingsIndex = 0
     customIconDraft = customIconPath
     customIconError = ""
-    if (activity) activity.loadConfig()
   }
 
   function showMain() {
@@ -169,6 +174,13 @@ Panel {
     entry[name] = value
     settings = entry
     bar.shell.updateEntryInline(moduleName, entry)
+  }
+
+  function syncBtopConfig() {
+    if (!activity || configSynced || activity.configBusy) return
+    configSynced = true
+    if (!activity.setConfig(updateMs, procSorting, procTree))
+      configSynced = false
   }
 
   function applyWindowMode(mode) {
@@ -219,21 +231,21 @@ Panel {
     }
     if (index === windowModeIndex) {
       var mode = nextChoice(["Floating", "Tiled"], windowMode, direction)
-      persistPluginSetting("windowMode", mode)
       applyWindowMode(mode)
+      persistPluginSetting("windowMode", mode)
       return
     }
     if (!activity || activity.configBusy) return
     if (index === updateIndex) {
-      activity.setConfig("update_ms", nextChoice(
-        updateChoices, activity.updateMs, direction
-      ))
+      persistPluginSetting(
+        "updateMs", nextChoice(updateChoices, updateMs, direction)
+      )
     } else if (index === sortingIndex) {
-      activity.setConfig("proc_sorting", nextChoice(
-        sortingChoices, activity.procSorting, direction
-      ))
+      persistPluginSetting(
+        "procSorting", nextChoice(sortingChoices, procSorting, direction)
+      )
     } else if (index === treeIndex) {
-      activity.setConfig("proc_tree", !activity.procTree)
+      persistPluginSetting("procTree", !procTree)
     }
   }
 
@@ -277,14 +289,34 @@ Panel {
 
   onCustomIconPathChanged: if (!customIconField.activeFocus)
     customIconDraft = customIconPath
+  onUpdateMsChanged: {
+    configSynced = false
+    syncBtopConfig()
+  }
+  onProcSortingChanged: {
+    configSynced = false
+    syncBtopConfig()
+  }
+  onProcTreeChanged: {
+    configSynced = false
+    syncBtopConfig()
+  }
+  onActivityChanged: {
+    configSynced = false
+    syncBtopConfig()
+  }
 
   Connections {
     target: root.activity
+    function onConfigBusyChanged() {
+      Qt.callLater(root.syncBtopConfig)
+    }
     function onConfigExistsChanged() {
       if (root.pendingLaunch !== "" && root.activity && root.activity.configExists)
         root.launchWhenConfigReady(root.pendingLaunch)
     }
   }
+  Component.onCompleted: Qt.callLater(root.syncBtopConfig)
   onOpenedChanged: if (opened) {
     showMain()
     Qt.callLater(function() { keyCatcher.forceActiveFocus() })
@@ -539,7 +571,7 @@ Panel {
           MenuRow {
             label: "Update interval"
             value: root.activity && root.activity.configReady
-              ? root.activity.updateMs + " ms" : "Loading…"
+              ? root.updateMs + " ms" : "Loading…"
             enabled: root.activity && !root.activity.configBusy
             hasCursor: root.settingsIndex === root.updateIndex
             onHovered: function(on) {
@@ -551,7 +583,7 @@ Panel {
           MenuRow {
             label: "Process sorting"
             value: root.activity && root.activity.configReady
-              ? root.sortingLabel(root.activity.procSorting) : "Loading…"
+              ? root.sortingLabel(root.procSorting) : "Loading…"
             enabled: root.activity && !root.activity.configBusy
             hasCursor: root.settingsIndex === root.sortingIndex
             onHovered: function(on) {
@@ -563,7 +595,7 @@ Panel {
           MenuRow {
             label: "Process tree"
             value: root.activity && root.activity.configReady
-              ? (root.activity.procTree ? "On" : "Off") : "Loading…"
+              ? (root.procTree ? "On" : "Off") : "Loading…"
             enabled: root.activity && !root.activity.configBusy
             hasCursor: root.settingsIndex === root.treeIndex
             onHovered: function(on) {
