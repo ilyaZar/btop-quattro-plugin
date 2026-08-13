@@ -24,7 +24,10 @@
     "defaults": {
       "iconStyle": "CPU",
       "customIconPath": "",
-      "windowMode": "Floating"
+      "windowMode": "Floating",
+      "updateMs": 2000,
+      "procSorting": "cpu lazy",
+      "procTree": false
     },
     "schema": [
       {
