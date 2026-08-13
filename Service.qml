@@ -301,11 +301,12 @@ QtObject {
     path: root.omarchyConfigPath
     printErrors: false
     onLoaded: {
+      if (!root._creatingConfig) return
       root._defaultConfigOutput = text()
       root._creatingConfig = false
       root.finishDefaultConfig()
     }
-    onLoadFailed: root.useDefaultConfig()
+    onLoadFailed: if (root._creatingConfig) root.useDefaultConfig()
   }
 
   property Process statsProcess: Process {
