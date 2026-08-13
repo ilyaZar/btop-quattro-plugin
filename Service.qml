@@ -16,6 +16,7 @@ QtObject {
   property int updateMs: 2000
   property string procSorting: "cpu lazy"
   property bool procTree: false
+  property bool configExists: false
   property bool configReady: false
   property string configError: ""
   property string _pendingKey: ""
@@ -25,12 +26,17 @@ QtObject {
   property bool _reloadAfterSave: false
   property string _defaultConfigOutput: ""
   property string _defaultConfigError: ""
+  property bool _creatingConfig: false
+  property bool _usingDefaultConfigFallback: false
 
   readonly property bool configBusy: _pendingKey !== ""
     || _savingConfig
+    || _creatingConfig
     || defaultConfigProcess.running
   readonly property string configPath: Quickshell.env("HOME")
     + "/.config/omarchy/plugins/ilyazar.btop/.btop.conf"
+  readonly property string omarchyConfigPath:
+    "/usr/share/omarchy/config/btop/btop.conf"
   readonly property var sortingValues: [
     "pid", "program", "arguments", "threads", "user", "memory",
     "cpu lazy", "cpu direct"
@@ -135,6 +141,7 @@ QtObject {
 
   function handleConfigLoaded(raw) {
     var text = String(raw || "")
+    configExists = true
     if (_pendingKey === "") {
       applyConfig(text)
       return
@@ -164,14 +171,23 @@ QtObject {
     _savingConfig = false
     _savingText = ""
     _reloadAfterSave = false
+    configExists = true
     applyConfig(text)
     if (shouldReload) reloadBtop()
   }
 
   function createConfig() {
-    if (defaultConfigProcess.running) return
+    if (_creatingConfig || defaultConfigProcess.running) return
     _defaultConfigOutput = ""
     _defaultConfigError = ""
+    _creatingConfig = true
+    _usingDefaultConfigFallback = false
+    omarchyConfigFile.reload()
+  }
+
+  function useDefaultConfig() {
+    _creatingConfig = false
+    _usingDefaultConfigFallback = true
     defaultConfigProcess.running = true
   }
 
@@ -194,6 +210,8 @@ QtObject {
     _savingConfig = false
     _savingText = ""
     _reloadAfterSave = false
+    _creatingConfig = false
+    _usingDefaultConfigFallback = false
     configReady = false
     configError = String(message || "Could not update btop settings")
   }
@@ -255,6 +273,7 @@ QtObject {
     onLoaded: root.handleConfigLoaded(text())
     onLoadFailed: function(error) {
       if (error === FileViewError.FileNotFound) {
+        root.configExists = false
         if (root._pendingKey !== "") root.createConfig()
         else root.applyConfig("")
       }
@@ -275,6 +294,18 @@ QtObject {
     printErrors: false
     onLoaded: root.applyTemperature(text())
     onLoadFailed: root.cpuTemperature = -1
+  }
+
+  property FileView omarchyConfigFile: FileView {
+    id: omarchyConfigFile
+    path: root.omarchyConfigPath
+    printErrors: false
+    onLoaded: {
+      root._defaultConfigOutput = text()
+      root._creatingConfig = false
+      root.finishDefaultConfig()
+    }
+    onLoadFailed: root.useDefaultConfig()
   }
 
   property Process statsProcess: Process {
@@ -322,7 +353,15 @@ QtObject {
       onStreamFinished: root._defaultConfigError = text
     }
     onExited: function(exitCode) {
-      if (exitCode === 0) root.finishDefaultConfig()
+      if (exitCode === 0) {
+        if (root._usingDefaultConfigFallback)
+          root._defaultConfigOutput = patchConfig(
+            root._defaultConfigOutput,
+            "color_theme",
+            JSON.stringify("current")
+          )
+        root.finishDefaultConfig()
+      }
       else root.failConfig(
         defaultConfigStderr.text || root._defaultConfigError
           || "Could not generate btop's default config"

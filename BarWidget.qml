@@ -15,6 +15,7 @@ Panel {
   property string customIconDraft: ""
   property string customIconError: ""
   property bool customIconLoadFailed: false
+  property string pendingLaunch: ""
 
   readonly property var activity: bar && bar.shell
     ? bar.shell.serviceFor(moduleName) : null
@@ -95,18 +96,27 @@ Panel {
     return ""
   }
 
-  function launchBtop() {
+  function launchWhenConfigReady(action) {
     if (!activity) return
-    close()
+    if (!activity.configExists) {
+      pendingLaunch = action
+      if (!activity.configBusy) activity.createConfig()
+      return
+    }
+    pendingLaunch = ""
+    if (action === "help") execBtopHelp()
+    else execBtop()
+  }
+
+  function execBtop() {
     Quickshell.execDetached([
       "omarchy-launch-or-focus-tui", "--app-id=" + btopAppId,
       "btop", "--config", activity.configPath
     ])
   }
 
-  function launchBtopHelp() {
+  function execBtopHelp() {
     if (!activity) return
-    close()
     Quickshell.execDetached([
       "bash", "-lc",
       "omarchy-launch-or-focus-tui --app-id=" + btopAppId
@@ -126,6 +136,16 @@ Panel {
         + ">/dev/null; "
         + "exit; fi; sleep 0.1; done"
     ])
+  }
+
+  function launchBtop() {
+    close()
+    launchWhenConfigReady("btop")
+  }
+
+  function launchBtopHelp() {
+    close()
+    launchWhenConfigReady("help")
   }
 
   function showSettings() {
@@ -239,6 +259,14 @@ Panel {
 
   onCustomIconPathChanged: if (!customIconField.activeFocus)
     customIconDraft = customIconPath
+
+  Connections {
+    target: root.activity
+    function onConfigExistsChanged() {
+      if (root.pendingLaunch !== "" && root.activity && root.activity.configExists)
+        root.launchWhenConfigReady(root.pendingLaunch)
+    }
+  }
   onOpenedChanged: if (opened) {
     showMain()
     Qt.callLater(function() { keyCatcher.forceActiveFocus() })

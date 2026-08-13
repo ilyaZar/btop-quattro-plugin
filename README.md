@@ -78,10 +78,11 @@ The plugin launches btop with a private `.btop.conf` inside its checkout. Its
 three btop controls change only that file; the normal user `btop.conf` is never
 read or written.
 
-The private file is created only when btop is opened or a btop setting is
-changed. Quickshell writes plugin changes atomically, and a running btop
-receives its supported config-reload signal only after a successful change.
-Native plugin removal deletes the private file with the checkout.
+The private file is created from Omarchy's packaged btop config only when btop
+is opened or a btop setting is changed. Quickshell writes plugin changes
+atomically, and a running btop receives its supported config-reload signal only
+after a successful change. Native plugin removal deletes the private file with
+the checkout.
 
 ## Requirements
 
