@@ -31,7 +31,7 @@ The plugin keeps the short list of controls that is useful before opening btop:
 |-----------------|-------------|------------------------------------------|
 | Tray icon       | Omarchy     | Meters, CPU, Pulse, or a custom image    |
 | Window mode     | Omarchy     | Floating or tiled                        |
-| Update interval | Plugin      | 500, 1000, 2000, or 5000 milliseconds   |
+| Update interval | Plugin      | 250, 500, 1000, 2000, or 5000 ms        |
 | Process sorting | Plugin      | Lazy CPU, direct CPU, memory, or program |
 | Process tree    | Plugin      | On or off                                |
 

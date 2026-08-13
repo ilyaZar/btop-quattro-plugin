@@ -41,7 +41,7 @@ Panel {
       ? "CPU: " + Math.round(activity.cpuUsage) + "%" + temperatureSuffix
       : "CPU: --")
   )
-  readonly property var updateChoices: [500, 1000, 2000, 5000]
+  readonly property var updateChoices: [250, 500, 1000, 2000, 5000]
   readonly property var sortingChoices: [
     "cpu lazy", "cpu direct", "memory", "program"
   ]
