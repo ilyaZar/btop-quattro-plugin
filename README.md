@@ -5,6 +5,13 @@ away.
 
 ![btop Activity on the Omarchy desktop](preview.png)
 
+## Demo
+
+See btop launch from the bar, switch between floating and tiled layouts, apply a
+250 ms refresh interval live, and update its Omarchy keybinding.
+
+https://github.com/user-attachments/assets/d8dde155-dd62-4afa-b586-2f4b95a61d4e
+
 ## Install
 
 ```bash
