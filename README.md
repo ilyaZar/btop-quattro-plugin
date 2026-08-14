@@ -1,43 +1,42 @@
-# btop Activity for Omarchy
+# btop Activity for Omarchy Quattro
+
+Live CPU, RAM, and temperature activity in the Omarchy bar, with btop one click
+away.
 
 ![btop Activity on the Omarchy desktop](preview.png)
 
-Live CPU, RAM, and temperature activity in the Omarchy bar, with btop always
-one click away. The default CPU icon follows the bar's normal foreground
-color.
+## Install
+
+```bash
+omarchy plugin add https://github.com/ilyaZar/btop-quattro-plugin --enable
+```
+
+btop is included with Omarchy Quattro, so no additional package is needed.
 
 ## Use
 
-- **Left-click** the bar icon to start or focus btop in the selected window
-  mode.
-- **Right-click** the bar icon to open the plugin menu.
-- Choose **Settings** to change the tray icon or basic btop options.
-- Choose **Help** below the separator to open or focus btop in the selected
-  window mode, directly on its built-in help screen. The same btop window is
-  reused when possible.
-
-The left meter shows CPU use and the right meter shows memory use. The menu is
-also keyboard-friendly: use the arrow keys and Enter, or press `b`, `s`, or `?`
-for btop, settings, or help.
-
-Hovering shows RAM use, CPU use, and CPU temperature. The btop update interval
-controls how often all three are sampled.
+- **left-click** bar icon to start/focus btop in the selected window mode
+- **right-click** bar icon to open the plugin settings
+  - choose **Settings** to change btop options (tray icon, keybinding ...)
+  - choose **Help** to open built-in help in the selected window mode
+- **hovering** shows RAM use, CPU use, and CPU temperature
 
 ## Settings
 
 The plugin keeps the short list of controls that is useful before opening btop:
 
-| Setting         | Stored in   | Choices                                  |
-|-----------------|-------------|------------------------------------------|
-| Tray icon       | Omarchy     | Meters, CPU, Pulse, or a custom image    |
-| Window mode     | Omarchy     | Floating or tiled                        |
-| Update interval | Omarchy     | 250, 500, 1000, 2000, or 5000 ms        |
-| Process sorting | Omarchy     | Lazy CPU, direct CPU, memory, or program |
-| Process tree    | Omarchy     | On or off                                |
+| Setting         | Choices                                  |
+| --------------- | ---------------------------------------- |
+| Tray icon       | Meters, CPU, Pulse, or a custom image    |
+| Window mode     | Floating or tiled                        |
+| Update interval | 250, 500, 1000, 2000, or 5000 ms         |
+| Process sorting | Lazy CPU, direct CPU, memory, or program |
+| Process tree    | On or off                                |
 
 Cycle **Tray icon** through **Meters**, **CPU**, **Pulse**, and **Custom**. The
-custom path is stored separately, so switching between styles does not discard
-it. **CPU** is the default for new installations.
+default CPU icon follows the bar's normal foreground color. The custom path is
+stored separately, so switching between styles does not discard it. **CPU** is
+the default for new installations.
 
 For **Custom**, enter an absolute path, a `~/path`, or a `file://` URL, then
 press Enter or **Save**. SVG and PNG work well. The plugin renders the file
@@ -55,23 +54,6 @@ Under **Appearance**, choose whether btop opens tiled or floating. The setting
 applies to both left-click and Help. Floating is the default and restores
 Omarchy's centered 875 x 600 window size when selected.
 
-## Install
-
-```bash
-omarchy plugin add https://github.com/ilyaZar/btop-quattro-plugin --enable
-```
-
-The plugin appears on the right side of the bar by default.
-
-## Remove
-
-```bash
-omarchy plugin remove ilyazar.btop
-```
-
-Removing the plugin removes its private btop settings. It does not remove btop
-or change btop's normal configuration.
-
 ## Config safety
 
 The plugin stores its choices in Omarchy's `shell.json` and generates a private
@@ -82,10 +64,14 @@ The runtime file is created from Omarchy's packaged btop config and disappears
 with the user session. Quickshell writes it atomically, and a running btop
 receives its supported config-reload signal only after a successful change.
 
-## Requirements
+## Remove
 
-- Omarchy Quattro
-- btop, included with Omarchy
+```bash
+omarchy plugin remove ilyazar.btop
+```
+
+Removing the plugin removes its private btop settings. It does not remove btop
+or change btop's normal configuration.
 
 ## Development
 
