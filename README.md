@@ -11,7 +11,7 @@ away.
 omarchy plugin add https://github.com/ilyaZar/btop-quattro-plugin --enable
 ```
 
-btop is included with Omarchy Quattro, so no additional package is needed.
+Omarchy includes btop per default install, so no additional package is needed.
 
 ## Use
 
@@ -34,10 +34,20 @@ The plugin keeps the short list of controls that is useful before opening btop:
 | Process sorting | Lazy CPU, direct CPU, memory, or program |
 | Process tree    | On or off                                |
 
-**Keybindings** opens `~/.config/hypr/bindings.lua`. Neovim jumps to an existing
-Activity override when present, or to the end ready for a new one. The settings
-row follows the effective Activity shortcut after Hyprland reloads. Omarchy
-ships `Super+Ctrl+T` as default btop shortcut.
+Edit `~/.config/hypr/bindings.lua` directly, or select **Keybindings** in the
+plugin settings to open it. The button prefers Neovim, jumping to an existing
+Activity override or to the end of the file; without Neovim, it uses Omarchy's
+config editor.
+
+Omarchy assigns `Super+Ctrl+T` to btop by default. To replace it, add:
+
+```lua
+hl.unbind("SUPER + CTRL + T")
+o.bind("SUPER + CTRL + ALT + G", "Activity", { tui = "btop" })
+```
+
+After Hyprland reloads, the settings row shows the effective shortcut, or
+`Unbound` when no Activity binding remains.
 
 Cycle **Tray icon** through **Meters**, **CPU**, **Pulse**, and **Custom**. The
 default CPU icon follows the bar's normal foreground color. The custom path is
