@@ -27,6 +27,8 @@ Panel {
   readonly property string iconGlyph: iconStyle === "CPU" ? "󰍛" : ""
   readonly property string customIconPath: String(setting("customIconPath", ""))
   readonly property string customIconUrl: resolveIconPath(customIconPath)
+  readonly property string keybindingsScript: localPath(
+    Qt.resolvedUrl("open-keybindings.sh"))
   readonly property string windowMode: String(setting("windowMode", "Floating"))
   readonly property int updateMs: intSetting("updateMs", 2000, 100, 86400000)
   readonly property string procSorting:
@@ -50,8 +52,9 @@ Panel {
   readonly property var sortingChoices: [
     "cpu lazy", "cpu direct", "memory", "program"
   ]
-  readonly property int customPathIndex: iconStyle === "Custom" ? 1 : -1
-  readonly property int windowModeIndex: iconStyle === "Custom" ? 2 : 1
+  readonly property int keybindingsIndex: 1
+  readonly property int customPathIndex: iconStyle === "Custom" ? 2 : -1
+  readonly property int windowModeIndex: iconStyle === "Custom" ? 3 : 2
   readonly property int updateIndex: windowModeIndex + 1
   readonly property int sortingIndex: updateIndex + 1
   readonly property int treeIndex: updateIndex + 2
@@ -85,6 +88,12 @@ Panel {
 
   function shellQuote(value) {
     return "'" + String(value).replace(/'/g, "'\\''") + "'"
+  }
+
+  function localPath(url) {
+    var value = String(url || "")
+    if (value.indexOf("file://") === 0) value = value.substring(7)
+    return decodeURIComponent(value)
   }
 
   function resolveIconPath(path) {
@@ -152,6 +161,11 @@ Panel {
   function launchBtopHelp() {
     close()
     launchWhenConfigReady("help")
+  }
+
+  function launchKeybindings() {
+    close()
+    Quickshell.execDetached(["bash", keybindingsScript])
   }
 
   function showSettings() {
@@ -257,6 +271,7 @@ Panel {
     if (dy !== 0)
       settingsIndex = (settingsIndex + dy + settingsCount) % settingsCount
     if (dx !== 0 && settingsIndex !== customPathIndex
+        && settingsIndex !== keybindingsIndex
         && settingsIndex < backIndex)
       cycleSetting(settingsIndex, dx > 0 ? 1 : -1)
   }
@@ -269,6 +284,7 @@ Panel {
       return
     }
     if (settingsIndex === backIndex) showMain()
+    else if (settingsIndex === keybindingsIndex) launchKeybindings()
     else if (settingsIndex === customPathIndex)
       customIconField.forceActiveFocus()
     else cycleSetting(settingsIndex, 1)
@@ -486,6 +502,16 @@ Panel {
             hasCursor: root.settingsIndex === 0
             onHovered: function(on) { if (on) root.settingsIndex = 0 }
             onClicked: root.cycleSetting(0, 1)
+          }
+
+          MenuRow {
+            label: "Keybindings"
+            value: "Super+Ctrl+T"
+            hasCursor: root.settingsIndex === root.keybindingsIndex
+            onHovered: function(on) {
+              if (on) root.settingsIndex = root.keybindingsIndex
+            }
+            onClicked: root.launchKeybindings()
           }
 
           Column {
