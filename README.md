@@ -24,7 +24,7 @@ Omarchy includes btop per default install, so no additional package is needed.
 ## Demo
 
 See btop launch from the bar, switch between floating and tiled layouts, apply a
-250 ms refresh interval live, and update its Omarchy keybinding.
+250 ms refresh interval live, and update its keybinding.
 
 https://github.com/user-attachments/assets/d8dde155-dd62-4afa-b586-2f4b95a61d4e
 
