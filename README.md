@@ -17,7 +17,7 @@ btop is included with Omarchy Quattro, so no additional package is needed.
 
 - **left-click** bar icon to start/focus btop in the selected window mode
 - **right-click** bar icon to open the plugin settings
-  - choose **Settings** to change btop options (tray icon, keybinding ...)
+  - choose **Settings** to change btop options (tray icon, keybindings ...)
   - choose **Help** to open built-in help in the selected window mode
 - **hovering** shows RAM use, CPU use, and CPU temperature
 
@@ -28,10 +28,15 @@ The plugin keeps the short list of controls that is useful before opening btop:
 | Setting         | Choices                                  |
 | --------------- | ---------------------------------------- |
 | Tray icon       | Meters, CPU, Pulse, or a custom image    |
+| Keybindings     | Opens the Omarchy user bindings file     |
 | Window mode     | Floating or tiled                        |
 | Update interval | 250, 500, 1000, 2000, or 5000 ms         |
 | Process sorting | Lazy CPU, direct CPU, memory, or program |
 | Process tree    | On or off                                |
+
+**Keybindings** opens `~/.config/hypr/bindings.lua`. Neovim jumps to an existing
+Activity override when present, or to the end ready for a new one. Omarchy ships
+`Super+Ctrl+T` as default btop shortcut.
 
 Cycle **Tray icon** through **Meters**, **CPU**, **Pulse**, and **Custom**. The
 default CPU icon follows the bar's normal foreground color. The custom path is
