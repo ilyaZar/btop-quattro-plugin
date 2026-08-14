@@ -35,8 +35,9 @@ The plugin keeps the short list of controls that is useful before opening btop:
 | Process tree    | On or off                                |
 
 **Keybindings** opens `~/.config/hypr/bindings.lua`. Neovim jumps to an existing
-Activity override when present, or to the end ready for a new one. Omarchy ships
-`Super+Ctrl+T` as default btop shortcut.
+Activity override when present, or to the end ready for a new one. The settings
+row follows the effective Activity shortcut after Hyprland reloads. Omarchy
+ships `Super+Ctrl+T` as default btop shortcut.
 
 Cycle **Tray icon** through **Meters**, **CPU**, **Pulse**, and **Custom**. The
 default CPU icon follows the bar's normal foreground color. The custom path is

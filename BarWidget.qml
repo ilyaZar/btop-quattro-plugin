@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import Quickshell
 import qs.Commons
 import qs.Ui
+import "lib/shortcuts" as Shortcuts
 
 Panel {
   id: root
@@ -52,14 +53,19 @@ Panel {
   readonly property var sortingChoices: [
     "cpu lazy", "cpu direct", "memory", "program"
   ]
-  readonly property int keybindingsIndex: 1
-  readonly property int customPathIndex: iconStyle === "Custom" ? 2 : -1
-  readonly property int windowModeIndex: iconStyle === "Custom" ? 3 : 2
+  readonly property int customPathIndex: iconStyle === "Custom" ? 1 : -1
+  readonly property int keybindingsIndex: iconStyle === "Custom" ? 2 : 1
+  readonly property int windowModeIndex: keybindingsIndex + 1
   readonly property int updateIndex: windowModeIndex + 1
   readonly property int sortingIndex: updateIndex + 1
   readonly property int treeIndex: updateIndex + 2
   readonly property int backIndex: updateIndex + 3
   readonly property int settingsCount: backIndex + 1
+
+  Shortcuts.HyprlandBinding {
+    id: activityBinding
+    actionDescription: "Activity"
+  }
 
   function intSetting(name, fallback, minimum, maximum) {
     var value = parseInt(String(setting(name, fallback)), 10)
@@ -173,6 +179,7 @@ Panel {
     settingsIndex = 0
     customIconDraft = customIconPath
     customIconError = ""
+    activityBinding.refresh()
   }
 
   function showMain() {
@@ -504,16 +511,6 @@ Panel {
             onClicked: root.cycleSetting(0, 1)
           }
 
-          MenuRow {
-            label: "Keybindings"
-            value: "Super+Ctrl+T"
-            hasCursor: root.settingsIndex === root.keybindingsIndex
-            onHovered: function(on) {
-              if (on) root.settingsIndex = root.keybindingsIndex
-            }
-            onClicked: root.launchKeybindings()
-          }
-
           Column {
             visible: root.iconStyle === "Custom"
             width: parent.width
@@ -566,6 +563,16 @@ Panel {
               font.pixelSize: Style.font.caption
               wrapMode: Text.WordWrap
             }
+          }
+
+          MenuRow {
+            label: "Keybindings"
+            value: activityBinding.label
+            hasCursor: root.settingsIndex === root.keybindingsIndex
+            onHovered: function(on) {
+              if (on) root.settingsIndex = root.keybindingsIndex
+            }
+            onClicked: root.launchKeybindings()
           }
 
           PanelSeparator { foreground: root.foreground }
