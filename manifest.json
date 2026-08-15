@@ -2,10 +2,10 @@
   "schemaVersion": 1,
   "id": "ilyazar.btop",
   "name": "btop Activity",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "author": "ilyaZar",
   "license": "MIT",
-  "description": "Minimal, low-overhead btop access from the Omarchy bar, with live CPU, RAM, and temperature meters, basic settings, built-in help, and built-in or custom icons.",
+  "description": "Minimal, low-overhead btop access from the Omarchy bar, with live CPU, RAM, GPU, and temperature meters, basic settings, built-in help, and built-in or custom icons.",
   "kinds": [
     "service",
     "bar-widget"
@@ -17,7 +17,7 @@
   },
   "barWidget": {
     "displayName": "btop Activity",
-    "description": "CPU, RAM, and temperature meters with one-click btop, basic settings, built-in help, and built-in or custom icons.",
+    "description": "CPU, RAM, GPU, and temperature meters with one-click btop, basic settings, built-in help, and built-in or custom icons.",
     "category": "System",
     "allowMultiple": false,
     "defaultSection": "right",

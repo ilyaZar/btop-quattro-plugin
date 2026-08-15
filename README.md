@@ -1,7 +1,12 @@
 # btop Activity for Omarchy Quattro
 
-Live CPU, RAM, and temperature activity in the Omarchy bar, with btop one click
-away.
+Live CPU, RAM, GPU, and temperature activity in the Omarchy bar, with btop one
+click away.
+
+- brings btop back to the Omarchy bar with one-click launch and focus
+- shows live CPU, RAM, GPU, and temperature activity at a glance
+- switches between floating and tiled btop and applies settings live
+- preserves Omarchy's btop theme without touching the normal user `btop.conf`
 
 ![btop Activity on the Omarchy desktop](preview.png)
 
@@ -11,7 +16,8 @@ away.
 omarchy plugin add https://github.com/ilyaZar/btop-quattro-plugin --enable
 ```
 
-Omarchy includes btop per default install, so no additional package is needed.
+Omarchy includes btop per default install. On AMD systems, btop's own GPU panel
+also needs the distribution's ROCm SMI library (`rocm-smi-lib` on Arch).
 
 ## Use
 
@@ -19,14 +25,18 @@ Omarchy includes btop per default install, so no additional package is needed.
 - **right-click** bar icon to open the plugin settings
   - choose **Settings** to change btop options (tray icon, keybindings ...)
   - choose **Help** to open built-in help in the selected window mode
-- **hovering** shows RAM use, CPU use, and CPU temperature
+- **hovering** shows RAM use, CPU use and temperature, and GPU use and
+  temperature
+
+The plugin reads GPU telemetry from the kernel driver. If that driver does not
+publish a temperature sensor, the hover shows a dimmed `<missing driver>`.
 
 ## Demo
 
 See btop launch from the bar, switch between floating and tiled layouts, apply a
 250 ms refresh interval live, and update its keybinding.
 
-https://github.com/user-attachments/assets/d8dde155-dd62-4afa-b586-2f4b95a61d4e
+<https://github.com/user-attachments/assets/d8dde155-dd62-4afa-b586-2f4b95a61d4e>
 
 ## Settings
 
@@ -77,7 +87,7 @@ Under **Appearance**, choose whether btop opens tiled or floating. The setting
 applies to both left-click and Help. Floating is the default and restores
 Omarchy's centered 875 x 600 window size when selected.
 
-## Config safety
+## Config safety and troubleshooting
 
 The plugin stores its choices in Omarchy's `shell.json` and generates a private
 btop config under `$XDG_RUNTIME_DIR`. The normal user `btop.conf` is never read
@@ -86,6 +96,15 @@ or written.
 The runtime file is created from Omarchy's packaged btop config and disappears
 with the user session. Quickshell writes it atomically, and a running btop
 receives its supported config-reload signal only after a successful change.
+
+GPU temperature depends on driver support. If unavailable, the hover shows
+`<missing driver>`. For AMD temperature monitoring in btop, install ROCm SMI:
+
+```bash
+sudo pacman -S rocm-smi-lib
+```
+
+Then restart btop. Can be an issue for GPUs ala Radeon RX 6400.
 
 ## Remove
 

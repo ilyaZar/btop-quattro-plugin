@@ -7,9 +7,13 @@ QtObject {
 
   property real cpuUsage: 0
   property real cpuTemperature: -1
+  property real gpuUsage: -1
+  property real gpuTemperature: -1
   property real memoryUsage: 0
   property bool available: false
   property string temperaturePath: ""
+  property string gpuUsagePath: ""
+  property string gpuTemperaturePath: ""
   property real previousIdle: -1
   property real previousTotal: -1
 
@@ -46,6 +50,8 @@ QtObject {
   function refresh() {
     if (!statsProcess.running) statsProcess.running = true
     if (temperaturePath !== "") temperatureFile.reload()
+    if (gpuUsagePath !== "") gpuUsageFile.reload()
+    if (gpuTemperaturePath !== "") gpuTemperatureFile.reload()
   }
 
   function validatedConfig(interval, sorting, tree) {
@@ -230,6 +236,29 @@ QtObject {
       ? millidegrees / 1000 : -1
   }
 
+  function applyGpuUsage(raw) {
+    var percentage = Number(String(raw || "").trim())
+    gpuUsage = isFinite(percentage) && percentage >= 0
+      ? clamp(percentage, 0, 100) : -1
+  }
+
+  function applyGpuTemperature(raw) {
+    var millidegrees = Number(String(raw || "").trim())
+    gpuTemperature = isFinite(millidegrees) && millidegrees > 0
+      ? millidegrees / 1000 : -1
+  }
+
+  function applySensorPaths(raw) {
+    var lines = String(raw || "").trim().split("\n")
+    for (var i = 0; i < lines.length; i++) {
+      var fields = lines[i].split("\t")
+      if (fields[0] === "cpu") temperaturePath = fields[1] || ""
+      else if (fields[0] === "gpu") gpuUsagePath = fields[1] || ""
+      else if (fields[0] === "gpu_temperature")
+        gpuTemperaturePath = fields[1] || ""
+    }
+  }
+
   property FileView configFile: FileView {
     id: configFile
     path: root.configPath
@@ -264,6 +293,20 @@ QtObject {
     onLoadFailed: root.cpuTemperature = -1
   }
 
+  property FileView gpuUsageFile: FileView {
+    path: root.gpuUsagePath
+    printErrors: false
+    onLoaded: root.applyGpuUsage(text())
+    onLoadFailed: root.gpuUsage = -1
+  }
+
+  property FileView gpuTemperatureFile: FileView {
+    path: root.gpuTemperaturePath
+    printErrors: false
+    onLoaded: root.applyGpuTemperature(text())
+    onLoadFailed: root.gpuTemperature = -1
+  }
+
   property FileView omarchyConfigFile: FileView {
     id: omarchyConfigFile
     path: root.omarchyConfigPath
@@ -289,7 +332,7 @@ QtObject {
     }
   }
 
-  property Process temperaturePathProcess: Process {
+  property Process sensorPathProcess: Process {
     running: true
     command: [
       "sh", "-c",
@@ -298,12 +341,27 @@ QtObject {
         + "read -r name < \"$d/name\"; "
         + "case \"$name\" in coretemp|k10temp|zenpower|cpu_thermal) "
         + "for f in \"$d\"/temp*_input; do "
-        + "[ -r \"$f\" ] || continue; printf '%s\\n' \"$f\"; exit; "
-        + "done;; esac; done"
+        + "[ -r \"$f\" ] || continue; "
+        + "printf 'cpu\\t%s\\n' \"$f\"; break 2; "
+        + "done;; esac; done; "
+        + "for d in /sys/class/drm/card*/device; do "
+        + "[ -r \"$d/gpu_busy_percent\" ] || continue; "
+        + "printf 'gpu\\t%s\\n' \"$d/gpu_busy_percent\"; "
+        + "for h in \"$d\"/hwmon/hwmon*; do "
+        + "[ -d \"$h\" ] || continue; fallback=; "
+        + "for f in \"$h\"/temp*_input; do "
+        + "[ -r \"$f\" ] || continue; "
+        + "[ -n \"$fallback\" ] || fallback=\"$f\"; "
+        + "label=\"${f%_input}_label\"; "
+        + "[ -r \"$label\" ] || continue; read -r name < \"$label\"; "
+        + "[ \"$name\" = edge ] || continue; fallback=\"$f\"; break; "
+        + "done; [ -n \"$fallback\" ] && "
+        + "printf 'gpu_temperature\\t%s\\n' \"$fallback\"; break; "
+        + "done; break; done"
     ]
     stdout: StdioCollector {
       waitForEnd: true
-      onStreamFinished: root.temperaturePath = String(text).trim()
+      onStreamFinished: root.applySensorPaths(text)
     }
   }
 

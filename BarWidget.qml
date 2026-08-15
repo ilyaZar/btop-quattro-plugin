@@ -39,16 +39,24 @@ Panel {
     ? "org.omarchy.btop_tiled" : "org.omarchy.btop"
   readonly property bool customIconInvalid: iconStyle === "Custom"
     && (customIconUrl === "" || customIconLoadFailed)
-  readonly property string temperatureSuffix:
+  readonly property string cpuTemperatureSuffix:
     activity && activity.cpuTemperature >= 0
       ? " • " + Math.round(activity.cpuTemperature) + "°C" : ""
-  readonly property string tooltip: alignedTooltip(
+  readonly property string gpuUsageText:
+    activity && activity.gpuUsage >= 0
+      ? Math.round(activity.gpuUsage) + "%" : "--"
+  readonly property bool gpuTemperatureAvailable:
+    activity && activity.gpuTemperature >= 0
+  readonly property string gpuTemperatureText: gpuTemperatureAvailable
+    ? Math.round(activity.gpuTemperature) + "°C" : "<missing driver>"
+  readonly property string tooltip: styledTooltip(alignedTooltip(
     customIconInvalid ? "Custom icon" : (activity && activity.available
       ? "RAM: " + Math.round(activity.memoryUsage) + "%" : "RAM: --"),
     customIconInvalid ? "Unavailable" : (activity && activity.available
-      ? "CPU: " + Math.round(activity.cpuUsage) + "%" + temperatureSuffix
-      : "CPU: --")
-  )
+      ? "CPU: " + Math.round(activity.cpuUsage) + "%" + cpuTemperatureSuffix
+      : "CPU: --"),
+    "GPU: " + gpuUsageText + " • " + gpuTemperatureText
+  ))
   readonly property var updateChoices: [250, 500, 1000, 2000, 5000]
   readonly property var sortingChoices: [
     "cpu lazy", "cpu direct", "memory", "program"
@@ -85,11 +93,25 @@ Panel {
     return text
   }
 
-  function alignedTooltip(firstMetric, secondMetric) {
-    return padRight(firstMetric, 17) + "    "
+  function alignedTooltip(firstMetric, secondMetric, thirdMetric) {
+    return padRight(firstMetric, 27) + "    "
       + padLeft("Left click: btop", 17)
-      + "\n" + padRight(secondMetric, 17) + "    "
+      + "\n" + padRight(secondMetric, 27) + "    "
       + padLeft("Right click: menu", 17)
+      + "\n" + padRight(thirdMetric, 48)
+  }
+
+  function styledTooltip(value) {
+    if (gpuTemperatureAvailable) return value
+    var escaped = String(value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+    return "<pre>" + escaped.replace(
+      "&lt;missing driver&gt;",
+      "<font color=\"" + String(Qt.darker(Color.tooltip.text, 1.7))
+        + "\">&lt;missing driver&gt;</font>"
+    ) + "</pre>"
   }
 
   function shellQuote(value) {
@@ -444,8 +466,9 @@ Panel {
           title: root.page === "main" ? "btop" : "btop Settings"
           meta: root.page === "main"
             ? "CPU " + Math.round(root.activity ? root.activity.cpuUsage : 0)
-              + "% · Memory "
-              + Math.round(root.activity ? root.activity.memoryUsage : 0) + "%"
+              + "% · RAM "
+              + Math.round(root.activity ? root.activity.memoryUsage : 0)
+              + "% · GPU " + root.gpuUsageText
             : "Private btop.conf"
           foreground: root.foreground
           fontFamily: root.fontFamily
