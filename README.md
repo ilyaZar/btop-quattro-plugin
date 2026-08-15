@@ -29,7 +29,23 @@ also needs the distribution's ROCm SMI library (`rocm-smi-lib` on Arch).
   temperature
 
 The plugin reads GPU telemetry from the kernel driver. If that driver does not
-publish a temperature sensor, the hover shows a dimmed `<missing driver>`.
+publish a temperature sensor, the hover shows a dimmed `<unavailable>`.
+
+AMD usage and temperature are read directly from DRM sysfs. NVIDIA uses NVML,
+while Intel `i915` usage is sampled from the same Linux performance counters
+used by btop. Install the plugin's narrow helper once to enable the native
+backends:
+
+```bash
+~/.config/omarchy/plugins/ilyazar.btop/setup-gpu-helper.sh
+```
+
+The helper is built locally. On Intel it receives only `cap_perfmon`; NVIDIA
+uses the driver-provided NVML library without elevated privileges. Intel
+integrated GPUs commonly expose package temperature rather than a separate GPU
+sensor, so temperature can remain unavailable even while usage is working.
+Building requires a C compiler and `setcap` from `libcap`. NVIDIA monitoring
+also requires the official driver-provided `libnvidia-ml` library, as btop does.
 
 ## Demo
 
@@ -98,7 +114,7 @@ with the user session. Quickshell writes it atomically, and a running btop
 receives its supported config-reload signal only after a successful change.
 
 GPU temperature depends on driver support. If unavailable, the hover shows
-`<missing driver>`. For AMD temperature monitoring in btop, install ROCm SMI:
+`<unavailable>`. For AMD temperature monitoring in btop, install ROCm SMI:
 
 ```bash
 sudo pacman -S rocm-smi-lib

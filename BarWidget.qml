@@ -48,7 +48,7 @@ Panel {
   readonly property bool gpuTemperatureAvailable:
     activity && activity.gpuTemperature >= 0
   readonly property string gpuTemperatureText: gpuTemperatureAvailable
-    ? Math.round(activity.gpuTemperature) + "°C" : "<missing driver>"
+    ? Math.round(activity.gpuTemperature) + "°C" : "<unavailable>"
   readonly property string tooltip: styledTooltip(alignedTooltip(
     customIconInvalid ? "Custom icon" : (activity && activity.available
       ? "RAM: " + Math.round(activity.memoryUsage) + "%" : "RAM: --"),
@@ -108,9 +108,9 @@ Panel {
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;")
     return "<pre>" + escaped.replace(
-      "&lt;missing driver&gt;",
+      "&lt;unavailable&gt;",
       "<font color=\"" + String(Qt.darker(Color.tooltip.text, 1.7))
-        + "\">&lt;missing driver&gt;</font>"
+        + "\">&lt;unavailable&gt;</font>"
     ) + "</pre>"
   }
 
