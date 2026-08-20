@@ -30,13 +30,19 @@ QtObject {
   property string _defaultConfigError: ""
   property bool _creatingConfig: false
   property bool _usingDefaultConfigFallback: false
+  property bool baselineReady: false
 
   readonly property bool configBusy: _pendingConfig !== null
     || _savingConfig
     || _creatingConfig
+    || !baselineReady
+    || baselineProcess.running
     || defaultConfigProcess.running
   readonly property string configPath: Quickshell.env("XDG_RUNTIME_DIR")
     + "/ilyazar-btop.conf"
+  readonly property string configBackupPath: configPath + ".before-plugin"
+  readonly property string configAbsentPath: configPath + ".absent-before-plugin"
+  readonly property string pluginDir: localPath(Qt.resolvedUrl("."))
   readonly property string omarchyConfigPath:
     "/usr/share/omarchy/config/btop/btop.conf"
   readonly property string gpuHelperPath:
@@ -47,6 +53,65 @@ QtObject {
     "pid", "program", "arguments", "threads", "user", "memory",
     "cpu lazy", "cpu direct"
   ]
+  readonly property string baselineCommand: [
+    "set -euo pipefail",
+    "config_path=\"$1\"",
+    "backup_path=\"$2\"",
+    "absent_path=\"$3\"",
+    "if [[ -e $backup_path || -L $backup_path",
+    "    || -e $absent_path || -L $absent_path ]]; then exit 0; fi",
+    "if [[ -e $config_path || -L $config_path ]]; then",
+    "  temporary=\"${backup_path}.tmp.$$\"",
+    "  trap 'rm -rf -- \"$temporary\"' EXIT",
+    "  cp -a -- \"$config_path\" \"$temporary\"",
+    "  mv -T -- \"$temporary\" \"$backup_path\"",
+    "else",
+    "  umask 077",
+    "  : >\"$absent_path\"",
+    "fi"
+  ].join("\n")
+  readonly property string teardownCommand: [
+    "plugin_dir=\"$1\"",
+    "plugin_id=\"$2\"",
+    "config_path=\"$3\"",
+    "backup_path=\"$4\"",
+    "absent_path=\"$5\"",
+    "attempts=\"$6\"",
+    "interval=\"$7\"",
+    "plugin_state=absent",
+    "if [[ -e $plugin_dir ]]; then",
+    "  plugin_state=unknown",
+    "  plugin_filter='[.[] | select(.id == $id)]'",
+    "  plugin_filter+=' | if length != 1 then \"unknown\"'",
+    "  plugin_filter+=' elif .[0].enabled == true then \"enabled\"'",
+    "  plugin_filter+=' elif .[0].enabled == false then \"disabled\"'",
+    "  plugin_filter+=' else \"unknown\" end'",
+    "  for ((attempt = 0; attempt < attempts; attempt++)); do",
+    "    plugin_json=\"\"",
+    "    if plugin_json=\"$(omarchy plugin list --json 2>/dev/null)\"; then",
+    "      plugin_state=\"$(jq -r --arg id \"$plugin_id\" \\",
+    "        \"$plugin_filter\" <<<\"$plugin_json\" 2>/dev/null \\",
+    "        || printf 'unknown')\"",
+    "      [[ $plugin_state == enabled ]] && exit 0",
+    "      [[ $plugin_state == disabled ]] && break",
+    "    fi",
+    "    sleep \"$interval\"",
+    "  done",
+    "  [[ $plugin_state == unknown && -e $plugin_dir ]] && exit 0",
+    "fi",
+    "if [[ -e $backup_path || -L $backup_path ]]; then",
+    "  rm -f -- \"$config_path\" \"$absent_path\"",
+    "  mv -T -- \"$backup_path\" \"$config_path\"",
+    "elif [[ -e $absent_path || -L $absent_path ]]; then",
+    "  rm -f -- \"$config_path\" \"$backup_path\" \"$absent_path\"",
+    "fi"
+  ].join("\n")
+
+  function localPath(url) {
+    var value = String(url || "")
+    if (value.indexOf("file://") === 0) value = value.substring(7)
+    return decodeURIComponent(value).replace(/\/$/, "")
+  }
 
   function clamp(value, minimum, maximum) {
     return Math.max(minimum, Math.min(maximum, value))
@@ -114,6 +179,15 @@ QtObject {
       configError = String(error)
       return false
     }
+  }
+
+  function teardown() {
+    if (baselineProcess.running) baselineProcess.running = false
+    Quickshell.execDetached([
+      "bash", "-c", teardownCommand, "btop-runtime-teardown",
+      pluginDir, "ilyazar.btop", configPath, configBackupPath,
+      configAbsentPath, "10", "0.05"
+    ])
   }
 
   function handleConfigLoaded(raw, createFile) {
@@ -326,6 +400,20 @@ QtObject {
     }
   }
 
+  property Process baselineProcess: Process {
+    id: baselineProcess
+    running: true
+    command: [
+      "bash", "-c", root.baselineCommand, "btop-runtime-baseline",
+      root.configPath, root.configBackupPath, root.configAbsentPath
+    ]
+    onExited: function(exitCode) {
+      root.baselineReady = exitCode === 0
+      if (!root.baselineReady)
+        root.configError = "Could not protect existing btop runtime settings"
+    }
+  }
+
   property FileView temperatureFile: FileView {
     id: temperatureFile
     path: root.temperaturePath
@@ -485,4 +573,6 @@ QtObject {
     triggeredOnStart: true
     onTriggered: root.refresh()
   }
+
+  Component.onDestruction: root.teardown()
 }
