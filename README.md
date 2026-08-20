@@ -109,9 +109,10 @@ The plugin stores its choices in Omarchy's `shell.json` and generates a private
 btop config under `$XDG_RUNTIME_DIR`. The normal user `btop.conf` is never read
 or written.
 
-The runtime file is created from Omarchy's packaged btop config and disappears
-with the user session. Quickshell writes it atomically, and a running btop
-receives its supported config-reload signal only after a successful change.
+The runtime file is created from Omarchy's packaged btop config. Quickshell
+writes it atomically, and a running btop receives its supported config-reload
+signal only after a successful change. Disabling or removing the plugin
+restores a file that existed before enablement, or removes the file it created.
 
 GPU temperature depends on driver support. If unavailable, the hover shows
 `<unavailable>`. For AMD temperature monitoring in btop, install ROCm SMI:
