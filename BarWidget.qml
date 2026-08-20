@@ -21,7 +21,7 @@ Panel {
 
   readonly property var activity: bar && bar.shell
     ? bar.shell.serviceFor(moduleName) : null
-  readonly property color foreground: bar ? bar.foreground : Color.foreground
+  readonly property color foreground: bar ? bar.barForeground : Color.foreground
   readonly property color dim: Qt.darker(foreground, 1.5)
   readonly property string fontFamily: bar ? bar.fontFamily : Style.font.family
   readonly property string iconStyle: String(setting("iconStyle", "CPU"))
