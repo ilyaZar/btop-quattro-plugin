@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import "lib/UpdateInterval.js" as UpdateInterval
 
 QtObject {
   id: root
@@ -133,9 +134,9 @@ QtObject {
   }
 
   function validatedConfig(interval, sorting, tree) {
-    var update = parseInt(String(interval), 10)
+    var update = UpdateInterval.parse(interval)
     var order = String(sorting)
-    if (!isFinite(update) || update < 100 || update > 86400000)
+    if (update === null)
       throw new Error("Invalid btop update interval")
     if (sortingValues.indexOf(order) < 0)
       throw new Error("Invalid btop process sorting")

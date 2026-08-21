@@ -4,6 +4,7 @@ import Quickshell
 import qs.Commons
 import qs.Ui
 import "lib/shortcuts" as Shortcuts
+import "lib/UpdateInterval.js" as UpdateInterval
 
 Panel {
   id: root
@@ -16,6 +17,8 @@ Panel {
   property string customIconDraft: ""
   property string customIconError: ""
   property bool customIconLoadFailed: false
+  property string updateDraft: "2000"
+  property bool updateEditing: false
   property string pendingLaunch: ""
   property bool configSynced: false
 
@@ -23,6 +26,7 @@ Panel {
     ? bar.shell.serviceFor(moduleName) : null
   readonly property color foreground: bar ? bar.barForeground : Color.foreground
   readonly property color dim: Qt.darker(foreground, 1.5)
+  readonly property color urgent: bar ? bar.urgent : Color.urgent
   readonly property string fontFamily: bar ? bar.fontFamily : Style.font.family
   readonly property string iconStyle: String(setting("iconStyle", "CPU"))
   readonly property string iconGlyph: iconStyle === "CPU" ? "󰍛" : ""
@@ -31,7 +35,13 @@ Panel {
   readonly property string keybindingsScript: localPath(
     Qt.resolvedUrl("open-keybindings.sh"))
   readonly property string windowMode: String(setting("windowMode", "Floating"))
-  readonly property int updateMs: intSetting("updateMs", 2000, 100, 86400000)
+  readonly property int updateMs: intSetting(
+    "updateMs", 2000, UpdateInterval.minimum, UpdateInterval.maximum)
+  readonly property var updateDraftValue: UpdateInterval.parse(updateDraft)
+  readonly property bool updateDraftInvalid: updateEditing
+    && updateDraftValue === null
+  readonly property bool updateAvailable: activity && activity.configReady
+    && !activity.configBusy
   readonly property string procSorting:
     String(setting("procSorting", "cpu lazy"))
   readonly property bool procTree: setting("procTree", false) === true
@@ -57,7 +67,6 @@ Panel {
       : "CPU: --"),
     "GPU: " + gpuUsageText + " • " + gpuTemperatureText
   ))
-  readonly property var updateChoices: [250, 500, 1000, 2000, 5000]
   readonly property var sortingChoices: [
     "cpu lazy", "cpu direct", "memory", "program"
   ]
@@ -201,6 +210,8 @@ Panel {
     settingsIndex = 0
     customIconDraft = customIconPath
     customIconError = ""
+    updateDraft = String(updateMs)
+    updateEditing = false
     activityBinding.refresh()
   }
 
@@ -217,6 +228,56 @@ Panel {
     entry[name] = value
     settings = entry
     bar.shell.updateEntryInline(moduleName, entry)
+  }
+
+  function applyUpdateValue(value) {
+    var parsed = UpdateInterval.parse(value)
+    if (parsed === null) return false
+    updateDraft = String(parsed)
+    if (parsed !== updateMs) persistPluginSetting("updateMs", parsed)
+    return true
+  }
+
+  function startUpdateEditing() {
+    if (!updateAvailable) return
+    updateDraft = String(updateMs)
+    updateEditing = true
+    updateField.forceActiveFocus()
+    updateField.selectAll()
+  }
+
+  function finishUpdateEditing(apply, restoreFocus) {
+    if (!updateEditing) return
+    var parsed = UpdateInterval.parse(updateDraft)
+    updateEditing = false
+    if (apply && parsed !== null) applyUpdateValue(parsed)
+    else updateDraft = String(updateMs)
+    updateField.focus = false
+    if (restoreFocus) keyCatcher.forceActiveFocus()
+  }
+
+  function currentUpdateDraft() {
+    var parsed = UpdateInterval.parse(updateDraft)
+    return parsed === null ? updateMs : parsed
+  }
+
+  function nudgeUpdateDraft(direction) {
+    updateDraft = String(UpdateInterval.nudge(currentUpdateDraft(), direction))
+    updateField.selectAll()
+  }
+
+  function ladderUpdateDraft(direction) {
+    updateDraft = String(UpdateInterval.ladder(currentUpdateDraft(), direction))
+    updateField.selectAll()
+  }
+
+  function clickUpdateLadder(direction) {
+    var next = UpdateInterval.ladder(currentUpdateDraft(), direction)
+    applyUpdateValue(next)
+    if (updateEditing) {
+      updateField.forceActiveFocus()
+      updateField.selectAll()
+    }
   }
 
   function syncBtopConfig() {
@@ -280,9 +341,8 @@ Panel {
     }
     if (!activity || activity.configBusy) return
     if (index === updateIndex) {
-      persistPluginSetting(
-        "updateMs", nextChoice(updateChoices, updateMs, direction)
-      )
+      if (!updateAvailable) return
+      applyUpdateValue(UpdateInterval.ladder(updateMs, direction))
     } else if (index === sortingIndex) {
       persistPluginSetting(
         "procSorting", nextChoice(sortingChoices, procSorting, direction)
@@ -316,6 +376,7 @@ Panel {
     else if (settingsIndex === keybindingsIndex) launchKeybindings()
     else if (settingsIndex === customPathIndex)
       customIconField.forceActiveFocus()
+    else if (settingsIndex === updateIndex) startUpdateEditing()
     else cycleSetting(settingsIndex, 1)
   }
 
@@ -335,6 +396,7 @@ Panel {
   onCustomIconPathChanged: if (!customIconField.activeFocus)
     customIconDraft = customIconPath
   onUpdateMsChanged: {
+    if (!updateEditing) updateDraft = String(updateMs)
     configSynced = false
     syncBtopConfig()
   }
@@ -362,9 +424,13 @@ Panel {
     }
   }
   Component.onCompleted: Qt.callLater(root.syncBtopConfig)
-  onOpenedChanged: if (opened) {
-    showMain()
-    Qt.callLater(function() { keyCatcher.forceActiveFocus() })
+  onOpenedChanged: {
+    if (opened) {
+      showMain()
+      Qt.callLater(function() { keyCatcher.forceActiveFocus() })
+    } else if (updateEditing) {
+      finishUpdateEditing(true, false)
+    }
   }
 
   implicitWidth: button.implicitWidth
@@ -444,7 +510,7 @@ Panel {
     PanelKeyCatcher {
       id: keyCatcher
       anchors.fill: parent
-      blocked: customIconField.activeFocus
+      blocked: customIconField.activeFocus || updateField.activeFocus
       onMoveRequested: function(dx, dy) { root.moveCursor(dx, dy) }
       onActivateRequested: root.activateCursor()
       onCloseRequested: root.closeOrBack()
@@ -454,6 +520,17 @@ Panel {
         if (key === "b") root.launchBtop()
         else if (key === "s") root.showSettings()
         else if (key === "?") root.launchBtopHelp()
+      }
+
+      TapHandler {
+        acceptedButtons: Qt.LeftButton
+        onTapped: function(eventPoint) {
+          if (!root.updateEditing) return
+          var point = updateRow.mapFromItem(
+            keyCatcher, eventPoint.position.x, eventPoint.position.y)
+          if (!updateRow.contains(point))
+            root.finishUpdateEditing(true, true)
+        }
       }
 
       Column {
@@ -624,16 +701,139 @@ Panel {
             fontFamily: root.fontFamily
           }
 
-          MenuRow {
-            label: "Update interval"
-            value: root.activity && root.activity.configReady
-              ? root.updateMs + " ms" : "Loading…"
-            enabled: root.activity && !root.activity.configBusy
+          CursorSurface {
+            id: updateRow
+            width: parent.width
+            implicitHeight: Style.space(52)
+            foreground: root.foreground
+            opacity: root.updateAvailable ? 1 : 0.55
             hasCursor: root.settingsIndex === root.updateIndex
-            onHovered: function(on) {
-              if (on) root.settingsIndex = root.updateIndex
+
+            MouseArea {
+              anchors.fill: parent
+              enabled: root.updateAvailable
+              hoverEnabled: true
+              cursorShape: Qt.PointingHandCursor
+              onEntered: root.settingsIndex = root.updateIndex
+              onClicked: root.startUpdateEditing()
             }
-            onClicked: root.cycleSetting(root.updateIndex, 1)
+
+            RowLayout {
+              anchors.fill: parent
+              anchors.leftMargin: Style.spacing.rowPaddingX
+              anchors.rightMargin: Style.spacing.rowPaddingX
+              spacing: Style.space(6)
+
+              Text {
+                text: "Update interval"
+                color: root.foreground
+                font.family: root.fontFamily
+                font.pixelSize: Style.font.body
+                font.bold: updateRow.hasCursor
+                Layout.fillWidth: true
+                Layout.alignment: Qt.AlignVCenter
+              }
+
+              TextField {
+                id: updateField
+                Layout.preferredWidth: Style.space(94)
+                Layout.alignment: Qt.AlignVCenter
+                text: root.updateDraft
+                enabled: root.updateAvailable
+                foreground: root.updateDraftInvalid
+                  ? root.urgent : root.foreground
+                accent: root.updateDraftInvalid ? root.urgent : Color.accent
+                font.family: root.fontFamily
+                horizontalAlignment: Qt.AlignHCenter
+                inputMethodHints: Qt.ImhDigitsOnly
+                hasCursor: !activeFocus && updateRow.hasCursor
+                onTextChanged: root.updateDraft = text
+                onHoveredChanged: if (hovered)
+                  root.settingsIndex = root.updateIndex
+                onActiveFocusChanged: {
+                  if (activeFocus && !root.updateEditing) {
+                    root.updateDraft = String(root.updateMs)
+                    root.updateEditing = true
+                    selectAll()
+                  } else if (!activeFocus && root.updateEditing) {
+                    root.finishUpdateEditing(true, false)
+                  }
+                }
+                Keys.priority: Keys.BeforeItem
+                Keys.onPressed: function(event) {
+                  var text = String(event.text || "").toLowerCase()
+                  if (event.key === Qt.Key_Escape || text === "q") {
+                    root.finishUpdateEditing(false, true)
+                  } else if (event.key === Qt.Key_Return
+                      || event.key === Qt.Key_Enter) {
+                    root.finishUpdateEditing(true, true)
+                  } else if (event.key === Qt.Key_Left || text === "h") {
+                    root.nudgeUpdateDraft(-1)
+                  } else if (event.key === Qt.Key_Right || text === "l") {
+                    root.nudgeUpdateDraft(1)
+                  } else if (event.key === Qt.Key_Up || text === "k") {
+                    root.ladderUpdateDraft(1)
+                  } else if (event.key === Qt.Key_Down || text === "j") {
+                    root.ladderUpdateDraft(-1)
+                  } else {
+                    return
+                  }
+                  event.accepted = true
+                }
+              }
+
+              Text {
+                text: "ms"
+                color: root.dim
+                font.family: root.fontFamily
+                font.pixelSize: Style.font.bodySmall
+                Layout.alignment: Qt.AlignVCenter
+              }
+
+              Column {
+                Layout.alignment: Qt.AlignVCenter
+                spacing: 0
+
+                PanelActionButton {
+                  iconText: "^"
+                  tooltipText: "Next preset"
+                  foreground: root.foreground
+                  fontFamily: root.fontFamily
+                  fontSize: Style.font.bodySmall
+                  size: Style.space(20)
+                  enabled: root.updateAvailable
+                  onHovered: function(on) {
+                    if (on) root.settingsIndex = root.updateIndex
+                  }
+                  onClicked: root.clickUpdateLadder(1)
+                }
+
+                PanelActionButton {
+                  iconText: "v"
+                  tooltipText: "Previous preset"
+                  foreground: root.foreground
+                  fontFamily: root.fontFamily
+                  fontSize: Style.font.bodySmall
+                  size: Style.space(20)
+                  enabled: root.updateAvailable
+                  onHovered: function(on) {
+                    if (on) root.settingsIndex = root.updateIndex
+                  }
+                  onClicked: root.clickUpdateLadder(-1)
+                }
+              }
+            }
+          }
+
+          Text {
+            visible: root.updateDraftInvalid
+            width: parent.width
+            text: "Use a whole number from " + UpdateInterval.minimum
+              + " to " + UpdateInterval.maximum + " ms."
+            color: root.urgent
+            font.family: root.fontFamily
+            font.pixelSize: Style.font.caption
+            wrapMode: Text.WordWrap
           }
 
           MenuRow {
@@ -672,7 +872,9 @@ Panel {
 
           Text {
             width: parent.width
-            text: "Changes apply to running btop sessions."
+            text: root.updateEditing
+              ? "h/l or Left/Right: 1 ms; k/j or Up/Down: presets"
+              : "Changes apply to running btop sessions."
             color: root.dim
             font.family: root.fontFamily
             font.pixelSize: Style.font.caption
@@ -751,6 +953,8 @@ Panel {
       cursorShape: Qt.PointingHandCursor
       onEntered: row.hovered(true)
       onExited: row.hovered(false)
+      onPressed: if (root.updateEditing)
+        root.finishUpdateEditing(true, true)
       onClicked: row.clicked()
     }
   }
