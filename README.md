@@ -124,7 +124,7 @@ Planned work stays at the top. Shipped entries come from
 | Release | State   | Date       | What changed                                           |
 | ------- | ------- | ---------- | ------------------------------------------------------ |
 | Next    | planned | TBD        | add details when the next release is planned           |
-| 0.1.11  | shipped | 2026-08-21 | make the release table clean and easy to scan          |
+| 0.2.0   | shipped | 2026-08-21 | make the release table clean and easy to scan          |
 | 0.1.10  | shipped | 2026-08-21 | choose any update interval or step through presets     |
 |         |         |            | restore settings when disabling or removing the plugin |
 |         |         |            | show Intel and NVIDIA GPU data after helper setup      |
