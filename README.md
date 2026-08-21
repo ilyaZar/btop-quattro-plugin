@@ -24,7 +24,7 @@ After installation:
 ## Install
 
 ```bash
-omarchy plugin add https://github.com/ilyaZar/btop-quattro-plugin --enable
+omarchy plugin add https://github.com/ilyaZar/omarchy-btop-activity --enable
 ```
 
 Omarchy includes btop by default. On AMD systems, btop's own GPU panel also

@@ -4,6 +4,9 @@ Notable changes to btop Activity are documented here.
 
 ## Unreleased
 
+- Rename the GitHub repository to `omarchy-btop-activity` while keeping the
+  plugin ID stable (@ilyazar).
+
 ## 0.2.0 - 2026-08-21
 
 - Replace the per-cell release separators with a normal compact table

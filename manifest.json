@@ -5,11 +5,8 @@
   "version": "0.2.0",
   "author": "ilyaZar",
   "license": "MIT",
-  "description": "Minimal, low-overhead btop access from the Omarchy bar, with live CPU, RAM, GPU, and temperature meters, basic settings, built-in help, and built-in or custom icons.",
-  "kinds": [
-    "service",
-    "bar-widget"
-  ],
+  "description": "Minimal, low-overhead btop access from the Omarchy bar, with live CPU, RAM, GPU, and temperature meters. Common settings, including the polling interval, can be changed without editing btop configuration files. Built-in help opens btop help directly, and the bar supports built-in or custom icons.",
+  "kinds": ["service", "bar-widget"],
   "keepLoaded": true,
   "entryPoints": {
     "service": "Service.qml",
@@ -34,12 +31,7 @@
         "key": "iconStyle",
         "type": "enum",
         "label": "Tray icon",
-        "options": [
-          "Meters",
-          "CPU",
-          "Pulse",
-          "Custom"
-        ],
+        "options": ["Meters", "CPU", "Pulse", "Custom"],
         "defaultValue": "CPU"
       },
       {
@@ -52,10 +44,7 @@
         "key": "windowMode",
         "type": "enum",
         "label": "btop window mode",
-        "options": [
-          "Floating",
-          "Tiled"
-        ],
+        "options": ["Floating", "Tiled"],
         "defaultValue": "Floating"
       }
     ]
