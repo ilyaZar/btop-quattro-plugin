@@ -7,7 +7,7 @@ temperatures, with btop one click away.
 
 ## Some features
 
-- switches between floating and tiled btop and applies settings live
+- applies settings live to the running btop plugin
 - preserves Omarchy's btop theme without touching the normal user `btop.conf`
 
 ## Quickstart
@@ -34,8 +34,8 @@ needs the distribution's ROCm SMI library (`rocm-smi-lib` on Arch).
 
 The plugin reads GPU telemetry from the kernel driver. If that driver does not
 publish a temperature sensor, the hover shows a dimmed `<unavailable>`. If
-something fails here, GPU and driver combinations can be messy, so feel free
-to file an issue.
+something fails here, GPU and driver combinations can be messy, so feel free to
+file an issue.
 
 AMD usage and temperature are read directly from DRM sysfs. NVIDIA uses NVML,
 while Intel `i915` usage is sampled from the same Linux performance counters
@@ -64,14 +64,14 @@ See btop launch from the bar, switch between floating and tiled layouts, apply a
 
 The plugin keeps a short list of useful controls before opening btop:
 
-| Setting         | Choices                                      |
-| --------------- | -------------------------------------------- |
-| Tray icon       | Meters, CPU, Pulse, or a custom image        |
-| Keybindings     | opens the Omarchy user bindings file         |
-| Window mode     | floating or tiled                            |
-| Update interval | any whole number from 100 ms to one day      |
-| Process sorting | lazy CPU, direct CPU, memory, or program     |
-| Process tree    | on or off                                    |
+| Setting         | Choices                                  |
+| --------------- | ---------------------------------------- |
+| Tray icon       | Meters, CPU, Pulse, or a custom image    |
+| Keybindings     | opens the Omarchy user bindings file     |
+| Window mode     | floating or tiled                        |
+| Update interval | any whole number from 100 ms to one day  |
+| Process sorting | lazy CPU, direct CPU, memory, or program |
+| Process tree    | on or off                                |
 
 For the update interval, press Enter or click the value to edit it. Left/Right
 (or `h`/`l`) change it by 1 ms. Up/Down (or `k`/`j`) move through 250, 500,
