@@ -4,6 +4,11 @@ Notable changes to btop Activity are documented here.
 
 ## Unreleased
 
+## 0.1.11 - 2026-08-21
+
+- Replace the per-cell release separators with a normal compact table
+  (@ilyazar).
+
 ## 0.1.10 - 2026-08-21
 
 - Allow any btop-supported update interval while keeping the preset ladder on

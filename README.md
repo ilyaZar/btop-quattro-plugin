@@ -124,39 +124,29 @@ Planned work stays at the top. Shipped entries come from
 | Release | State   | Date       | What changed                                           |
 | ------- | ------- | ---------- | ------------------------------------------------------ |
 | Next    | planned | TBD        | add details when the next release is planned           |
-| <hr>    | <hr>    | <hr>       | <hr>                                                   |
+| 0.1.11  | shipped | 2026-08-21 | make the release table clean and easy to scan          |
 | 0.1.10  | shipped | 2026-08-21 | choose any update interval or step through presets     |
 |         |         |            | restore settings when disabling or removing the plugin |
 |         |         |            | show Intel and NVIDIA GPU data after helper setup      |
 |         |         |            | keep the widget readable on a transparent bar          |
-| <hr>    | <hr>    | <hr>       | <hr>                                                   |
 | 0.1.9   | shipped | 2026-08-15 | show GPU use and temperature in the tooltip and menu   |
 |         |         |            | show when GPU temperature is unavailable               |
 |         |         |            | display Scroll Lock correctly in shortcuts             |
-| <hr>    | <hr>    | <hr>       | <hr>                                                   |
 | 0.1.8   | shipped | 2026-08-14 | add a demo for launch, window modes, refresh, and keys |
-| <hr>    | <hr>    | <hr>       | <hr>                                                   |
 | 0.1.7   | shipped | 2026-08-14 | update the preview and explain Activity shortcuts      |
-| <hr>    | <hr>    | <hr>       | <hr>                                                   |
 | 0.1.6   | shipped | 2026-08-14 | show the current Activity shortcut or Unbound          |
 |         |         |            | keep custom icon controls beside the icon choice       |
-| <hr>    | <hr>    | <hr>       | <hr>                                                   |
 | 0.1.5   | shipped | 2026-08-14 | open the user bindings file from settings              |
 |         |         |            | apply btop settings without reloading the plugin       |
 |         |         |            | create the private btop config when it is missing      |
-| <hr>    | <hr>    | <hr>       | <hr>                                                   |
 | 0.1.4   | shipped | 2026-08-13 | keep settings usable while the private config loads    |
 |         |         |            | switch open btop windows between floating and tiled    |
 |         |         |            | add the 250 ms interval                                |
-| <hr>    | <hr>    | <hr>       | <hr>                                                   |
 | 0.1.3   | shipped | 2026-08-13 | start from Omarchy's btop config and current theme     |
-| <hr>    | <hr>    | <hr>       | <hr>                                                   |
 | 0.1.2   | shipped | 2026-08-12 | keep plugin settings separate and remove them cleanly  |
-| <hr>    | <hr>    | <hr>       | <hr>                                                   |
 | 0.1.1   | shipped | 2026-08-12 | show CPU temperature in the hover details              |
 |         |         |            | refresh hover data at the chosen interval              |
 |         |         |            | use the CPU icon by default for new installs           |
-| <hr>    | <hr>    | <hr>       | <hr>                                                   |
 | 0.1.0   | shipped | 2026-08-12 | first release                                          |
 
 ## Config safety and troubleshooting
