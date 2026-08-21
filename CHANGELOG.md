@@ -4,7 +4,7 @@ Notable changes to btop Activity are documented here.
 
 ## Unreleased
 
-## 0.1.11 - 2026-08-21
+## 0.2.0 - 2026-08-21
 
 - Replace the per-cell release separators with a normal compact table
   (@ilyazar).
