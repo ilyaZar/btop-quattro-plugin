@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "ilyazar.btop",
   "name": "btop Activity",
-  "version": "0.1.10",
+  "version": "0.1.11",
   "author": "ilyaZar",
   "license": "MIT",
   "description": "Minimal, low-overhead btop access from the Omarchy bar, with live CPU, RAM, GPU, and temperature meters, basic settings, built-in help, and built-in or custom icons.",
