@@ -4,6 +4,10 @@ Notable changes to btop Activity are documented here.
 
 ## Unreleased
 
+## 0.1.10 - 2026-08-21
+
+- Allow any btop-supported update interval while keeping the preset ladder on
+  mouse and keyboard controls (@ilyazar).
 - Restore a pre-existing runtime btop config when disabling or removing the
   plugin (@ilyazar).
 - Add native Intel and NVIDIA GPU telemetry backends with a narrow setup helper
